@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   isPhoneNumber,
   IsString,
+  MinLength,
   Validate,
   ValidationArguments,
   ValidatorConstraint,
@@ -29,7 +30,7 @@ export class SignupDto {
   @Validate(IsEmailOrPhoneNumber)
   id!: string;
 
-  @IsNotEmpty()
   @IsString()
+  @MinLength(6)
   password!: string;
 }
