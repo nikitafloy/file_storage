@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { validate } from "class-validator";
-import jwt from "jsonwebtoken";
+import jwt, { VerifyErrors } from "jsonwebtoken";
 import prisma from "../prisma";
 
 export function validation(Dto: any) {
@@ -49,10 +49,17 @@ export async function checkAccessToken(
       return res.status(400);
     }
 
+    if (!req.user.iat) {
+      return res.status(400);
+    }
+
     const session = await prisma.userSessions.findFirst({
       where: {
         id: req.user.session,
-        OR: [{ lastLogoutAt: null }, { lastLogoutAt: { gt: new Date() } }],
+        OR: [
+          { lastLogoutAt: null },
+          { lastLogoutAt: { lte: new Date(req.user.iat * 1000) } },
+        ],
       },
     });
 
@@ -66,6 +73,30 @@ export async function checkAccessToken(
     next();
   } catch (err) {
     console.error(err);
+
+    if ((err as VerifyErrors).message === "jwt expired") {
+      const oldTokenPayload = jwt.decode(token);
+
+      if (!oldTokenPayload || typeof oldTokenPayload === "string") {
+        return res
+          .status(400)
+          .send({ success: false, message: "Can not update token" });
+      }
+
+      const { exp, iat, ...tokenPayload } = oldTokenPayload;
+
+      const newToken = jwt.sign(
+        tokenPayload,
+        process.env.JWT_SECRET_ACCESS as string,
+        { expiresIn: "10m" },
+      );
+
+      res.cookie("Authorization", `Bearer ${newToken}`);
+
+      req.user = jwt.verify(newToken, process.env.JWT_SECRET_ACCESS as string);
+
+      return next();
+    }
 
     return res
       .status(400)
