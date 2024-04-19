@@ -1,13 +1,55 @@
 import { NextFunction, Request, Response } from "express";
 import prisma from "../../../prisma";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export async function signIn(req: Request, res: Response, next: NextFunction) {
-  const { id, password } = req.body;
+  const { id, password, deviceId } = req.body;
 
   // запрос bearer токена по id и паролю
 
-  res.status(200).json({ success: true, message: { bearer: "" } });
+  const user = await prisma.user.findFirst({ where: { id } });
+  if (!user) {
+    return res.status(400).send({ success: false, message: "User not found" });
+  }
+
+  if (!(await bcrypt.compare(password, user.password))) {
+    return res
+      .status(400)
+      .send({ success: false, message: "Passwords do not match" });
+  }
+
+  const { userId } = user;
+
+  const session = await prisma.userSessions
+    .create({ data: { userId, deviceId } })
+    .catch((err) => {
+      console.error(err);
+    });
+
+  if (!session) {
+    return res.status(400).send({
+      success: false,
+      message: "User with this session already exists",
+    });
+  }
+
+  const tokenPayload = { userId, session: session.id };
+
+  const accessToken = jwt.sign(
+    tokenPayload,
+    process.env.JWT_SECRET_ACCESS as string,
+    { expiresIn: "10m" },
+  );
+
+  const refreshToken = jwt.sign(
+    tokenPayload,
+    process.env.JWT_SECRET_REFRESH as string,
+  );
+
+  res
+    .status(200)
+    .json({ success: true, message: { accessToken, refreshToken } });
 }
 
 export async function updateToken(
@@ -29,7 +71,9 @@ export async function signUp(req: Request, res: Response, next: NextFunction) {
   // регистрация нового пользователя
   const user = await prisma.user.findFirst({ where: { id } });
   if (user) {
-    return res.status(400).send({ success: false, message: "User already exists" });
+    return res
+      .status(400)
+      .send({ success: false, message: "User already exists" });
   }
 
   await prisma.user.create({
