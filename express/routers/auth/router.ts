@@ -86,11 +86,28 @@ export async function signUp(req: Request, res: Response, next: NextFunction) {
   res.status(204).send();
 }
 
-export async function logout(req: Request, res: Response, next: NextFunction) {
+export async function logout(
+  req: Request & { user?: string | jwt.JwtPayload },
+  res: Response,
+  next: NextFunction,
+) {
   // выйти из системы
   // После выхода необходимо заблокировать текущие токены пользователя( методы с
   // этими токена больше не должны срабатывать). При следующем входе,
   // пользователь должен получить новую пару токенов, отличную от тех, которые были
   // при выходе.
   // Старый должен перестать работать;
+
+  if (!req.user || typeof req.user === "string") {
+    return res.status(400);
+  }
+
+  await prisma.userSessions.update({
+    where: {
+      id: req.user.session,
+    },
+    data: {
+      lastLogoutAt: new Date(),
+    },
+  });
 }
