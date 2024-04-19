@@ -110,4 +110,6 @@ export async function logout(
       lastLogoutAt: new Date(),
     },
   });
+
+  return res.status(204).send();
 }
