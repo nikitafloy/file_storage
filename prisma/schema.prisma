@@ -36,5 +36,5 @@ model File {
   ext        String
   mime_type  String
   size       BigInt
-  uploadedAt DateTime
+  uploadedAt DateTime @default(now())
 }
