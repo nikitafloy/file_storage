@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import path from "node:path";
 import { isFileExists } from "../../../utils";
 import fs from "node:fs";
+import { multerUpload } from "./index";
 
 export async function get(
   req: Request & { user?: string | jwt.JwtPayload },
@@ -71,11 +72,82 @@ export async function getList(
   });
 }
 
-export async function update(req: Request, res: Response, next: NextFunction) {
+export async function update(
+  req: Request & { user?: string | jwt.JwtPayload },
+  res: Response,
+  next: NextFunction,
+) {
   // обновление текущего документа на новый в базе и
   // локальном хранилище
 
-  res.status(200).json({ success: true, message: { files: {} } });
+  const id = Number(req.params.id);
+
+  if (!req.user || typeof req.user === "string") {
+    return res.status(400);
+  }
+
+  const oldFile = await prisma.file.findFirst({
+    where: { id, userId: req.user.userId },
+  });
+
+  if (!oldFile) {
+    return res
+      .status(400)
+      .send({ success: false, message: "Old file was not found" });
+  }
+
+  const filePath = path.join(`./uploads/${oldFile.name}`);
+
+  if (!(await isFileExists(filePath))) {
+    return res
+      .status(400)
+      .send({ success: false, message: "Old file is not exists" });
+  }
+
+  let newFile: Express.Multer.File | undefined;
+
+  try {
+    newFile = await new Promise((resolve, reject) => {
+      multerUpload.single("file")(req, res, function (err) {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve(req.file);
+      });
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res
+      .status(400)
+      .json({ success: false, message: "Error uploading new file" });
+  }
+
+  if (!newFile) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Error uploading new file" });
+  }
+
+  await fs.promises.unlink(filePath);
+
+  // await fs.promises.rename(
+  //   path.join(`./uploads/${newFile.filename}`),
+  //   path.join(`./uploads/${oldFile.name}`),
+  // );
+
+  await prisma.file.update({
+    where: { id },
+    data: {
+      name: newFile.filename,
+      ext: path.extname(newFile.originalname).split(".")[1],
+      mime_type: newFile.mimetype,
+      size: newFile.size,
+    },
+  });
+
+  res.status(204).send();
 }
 
 export async function upload(
@@ -87,25 +159,43 @@ export async function upload(
   // параметров файла в базу: название, расширение, MIME type, размер, дата
   // Загрузки;
 
-  if (!req.file) {
-    return res
-      .status(400)
-      .json({ success: false, message: "File is required" });
-  }
-
   if (!req.user || typeof req.user === "string") {
     return res.status(400);
   }
 
-  console.log(req.file);
+  let file: Express.Multer.File | undefined;
+
+  try {
+    file = await new Promise((resolve, reject) => {
+      multerUpload.single("file")(req, res, function (err) {
+        if (err) {
+          return reject(err);
+        }
+
+        resolve(req.file);
+      });
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res
+      .status(400)
+      .json({ success: false, message: "Error uploading file" });
+  }
+
+  if (!file) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Error uploading file" });
+  }
 
   await prisma.file.create({
     data: {
       userId: req.user.userId,
-      name: req.file.filename,
-      ext: path.extname(req.file.originalname).split(".")[1],
-      mime_type: req.file.mimetype,
-      size: req.file.size,
+      name: file.filename,
+      ext: path.extname(file.originalname).split(".")[1],
+      mime_type: file.mimetype,
+      size: file.size,
     },
   });
 

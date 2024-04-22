@@ -5,7 +5,7 @@ import { checkAccessToken } from "../../helpers";
 
 const router = express.Router();
 
-const multerUpload = multer({
+export const multerUpload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, "uploads/");
@@ -17,11 +17,11 @@ const multerUpload = multer({
   limits: { fileSize: 52428800 },
 });
 
-router.get("/:id", get);
-router.get("/list", getList);
-router.put("/update/:id", update);
-router.post("/upload", checkAccessToken, multerUpload.single("file"), upload);
-router.get("/download/:id", download);
-router.delete("/delete/:id", remove);
+router.get("/list", checkAccessToken, getList);
+router.get("/download/:id", checkAccessToken, download);
+router.put("/update/:id", checkAccessToken, update);
+router.post("/upload", checkAccessToken, upload);
+router.delete("/delete/:id", checkAccessToken, remove);
+router.get("/:id", checkAccessToken, get);
 
 export { router };
