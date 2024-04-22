@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import path from "node:path";
+import * as fs from "node:fs";
 
 export async function get(req: Request, res: Response, next: NextFunction) {
   const { id } = req.params;
@@ -82,13 +83,45 @@ export async function upload(
 }
 
 export async function download(
-  req: Request,
+  req: Request & { user?: string | jwt.JwtPayload },
   res: Response,
   next: NextFunction,
 ) {
   // скачивание конкретного файла
+  if (!req.user || typeof req.user === "string") {
+    return res.status(400);
+  }
 
-  res.status(200);
+  const file = await prisma.file.findFirst({
+    where: {
+      id: Number(req.params.id),
+      userId: req.user.sessionId,
+    },
+  });
+
+  if (!file) {
+    return res
+      .status(400)
+      .send({ success: false, message: "File was not found" });
+  }
+
+  let isFileExists: boolean;
+  const filePath = path.join(`./uploads/${file.name}`);
+
+  try {
+    await fs.promises.access(filePath);
+    isFileExists = true;
+  } catch (err) {
+    isFileExists = false;
+  }
+
+  if (!isFileExists) {
+    return res
+      .status(400)
+      .send({ success: false, message: "File is not exists" });
+  }
+
+  res.download(filePath);
 }
 
 export async function remove(req: Request, res: Response, next: NextFunction) {
