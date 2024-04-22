@@ -2,13 +2,43 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import path from "node:path";
 import { isFileExists } from "../../../utils";
+import fs from "node:fs";
 
-export async function get(req: Request, res: Response, next: NextFunction) {
-  const { id } = req.params;
+export async function get(
+  req: Request & { user?: string | jwt.JwtPayload },
+  res: Response,
+  next: NextFunction,
+) {
+  const id = Number(req.params.id);
+
+  if (!req.user || typeof req.user === "string") {
+    return res.status(400);
+  }
+
+  const file = await prisma.file.findFirst({
+    where: { id, userId: req.user.sessionId },
+  });
+
+  if (!file) {
+    return res
+      .status(400)
+      .send({ success: false, message: "File was not found" });
+  }
+
+  const filePath = path.join(`./uploads/${file.name}`);
+
+  if (!(await isFileExists(filePath))) {
+    return res
+      .status(400)
+      .send({ success: false, message: "File is not exists" });
+  }
 
   // вывод информации о выбранном файле
 
-  res.status(200).json({ success: true, message: { file: {} } });
+  res.status(200).json({
+    success: true,
+    message: { file: { ...file, size: file.size.toString() } },
+  });
 }
 
 export async function getList(
@@ -116,11 +146,40 @@ export async function download(
   res.download(filePath);
 }
 
-export async function remove(req: Request, res: Response, next: NextFunction) {
-  const { id } = req.params;
+export async function remove(
+  req: Request & { user?: jwt.JwtPayload },
+  res: Response,
+  next: NextFunction,
+) {
+  const id = Number(req.params.id);
 
   // удаляет документ из базы и локального
   // Хранилища
 
-  res.status(204);
+  if (!req.user || typeof req.user === "string") {
+    return res.status(400);
+  }
+
+  const file = await prisma.file.findFirst({
+    where: { id, userId: req.user.sessionId },
+  });
+
+  if (!file) {
+    return res
+      .status(400)
+      .send({ success: false, message: "File was not found" });
+  }
+
+  const filePath = path.join(`./uploads/${file.name}`);
+
+  if (!(await isFileExists(filePath))) {
+    return res
+      .status(400)
+      .send({ success: false, message: "File is not exists" });
+  }
+
+  await fs.promises.unlink(filePath);
+  await prisma.file.delete({ where: { id } });
+
+  res.status(204).send();
 }
