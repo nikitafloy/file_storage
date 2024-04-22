@@ -1,21 +1,17 @@
-import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
+import { NextFunction, Response } from "express";
 import path from "node:path";
 import { isFileExists } from "../../../utils";
 import fs from "node:fs";
 import { multerUpload } from "../../multer";
 import { uploadFile } from "./helpers";
+import { ExpressRequestWithUser } from "../../../common/interfaces/express/request-with-user.interface";
 
 export async function get(
-  req: Request & { user?: string | jwt.JwtPayload },
+  req: ExpressRequestWithUser,
   res: Response,
   next: NextFunction,
 ) {
   const id = Number(req.params.id);
-
-  if (!req.user || typeof req.user === "string") {
-    return res.status(400);
-  }
 
   const file = await prisma.file.findFirst({
     where: { id, userId: req.user.sessionId },
@@ -44,16 +40,12 @@ export async function get(
 }
 
 export async function getList(
-  req: Request & { user?: string | jwt.JwtPayload },
+  req: ExpressRequestWithUser,
   res: Response,
   next: NextFunction,
 ) {
   const list_size = req.params.list_size ? Number(req.params.list_size) : 10;
   const page = req.params.page ? Number(req.params.page) : 1;
-
-  if (!req.user || typeof req.user === "string") {
-    return res.status(400);
-  }
 
   const files = await prisma.file.findMany({
     where: { userId: req.user.userId },
@@ -74,18 +66,13 @@ export async function getList(
 }
 
 export async function update(
-  req: Request & { user?: string | jwt.JwtPayload },
+  req: ExpressRequestWithUser,
   res: Response,
   next: NextFunction,
 ) {
   // обновление текущего документа на новый в базе и
   // локальном хранилище
-
   const id = Number(req.params.id);
-
-  if (!req.user || typeof req.user === "string") {
-    return res.status(400);
-  }
 
   const oldFile = await prisma.file.findFirst({
     where: { id, userId: req.user.userId },
@@ -134,17 +121,13 @@ export async function update(
 }
 
 export async function upload(
-  req: Request & { user?: string | jwt.JwtPayload },
+  req: ExpressRequestWithUser,
   res: Response,
   next: NextFunction,
 ) {
   // добавление нового файла в систему и запись
   // параметров файла в базу: название, расширение, MIME type, размер, дата
   // Загрузки;
-
-  if (!req.user || typeof req.user === "string") {
-    return res.status(400);
-  }
 
   const file = await uploadFile(req, res);
 
@@ -168,14 +151,11 @@ export async function upload(
 }
 
 export async function download(
-  req: Request & { user?: string | jwt.JwtPayload },
+  req: ExpressRequestWithUser,
   res: Response,
   next: NextFunction,
 ) {
   // скачивание конкретного файла
-  if (!req.user || typeof req.user === "string") {
-    return res.status(400);
-  }
 
   const file = await prisma.file.findFirst({
     where: {
@@ -202,7 +182,7 @@ export async function download(
 }
 
 export async function remove(
-  req: Request & { user?: jwt.JwtPayload },
+  req: ExpressRequestWithUser,
   res: Response,
   next: NextFunction,
 ) {
@@ -210,10 +190,6 @@ export async function remove(
 
   // удаляет документ из базы и локального
   // Хранилища
-
-  if (!req.user || typeof req.user === "string") {
-    return res.status(400);
-  }
 
   const file = await prisma.file.findFirst({
     where: { id, userId: req.user.sessionId },

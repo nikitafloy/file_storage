@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import prisma from "../../../prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { ExpressRequestWithUser } from "../../../common/interfaces/express/request-with-user.interface";
 
 export async function signIn(req: Request, res: Response, next: NextFunction) {
   const { id, password, deviceId } = req.body;
@@ -87,7 +88,7 @@ export async function signUp(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function logout(
-  req: Request & { user?: string | jwt.JwtPayload },
+  req: ExpressRequestWithUser,
   res: Response,
   next: NextFunction,
 ) {
@@ -97,10 +98,6 @@ export async function logout(
   // пользователь должен получить новую пару токенов, отличную от тех, которые были
   // при выходе.
   // Старый должен перестать работать;
-
-  if (!req.user || typeof req.user === "string") {
-    return res.status(400);
-  }
 
   await prisma.userSessions.update({
     where: {
