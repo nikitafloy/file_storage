@@ -1,11 +1,18 @@
 import { IsNotEmpty, IsNumber, IsOptional, Min } from "class-validator";
 import { Transform } from "class-transformer";
 
-export class DeleteFileDto {
+export class GetFilesListDto {
   @IsNotEmpty()
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Transform(({ value }) => Number(value))
-  id!: number;
+  page?: number;
+
+  @IsNotEmpty()
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Transform(({ value }) => Number(value))
+  list_size?: number;
 }

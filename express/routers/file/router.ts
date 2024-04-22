@@ -4,6 +4,7 @@ import { isFileExists } from "../../../utils";
 import fs from "node:fs";
 import { uploadFile } from "./helpers";
 import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
+import { GetFilesListDto } from "../../../common/dtos/file/get-files-list.dto";
 
 export async function get(req: UserRequest, res: Response) {
   const id = +req.params.id;
@@ -32,21 +33,18 @@ export async function get(req: UserRequest, res: Response) {
   });
 }
 
-export async function getList(req: UserRequest, res: Response) {
-  const list_size = req.params.list_size ? +req.params.list_size : 10;
-  const page = req.params.page ? +req.params.page : 1;
+export async function getList(
+  req: UserRequest & { query: GetFilesListDto },
+  res: Response,
+) {
+  const list_size = req.query.list_size || 10;
+  const page = req.query.page || 1;
 
   const files = await prisma.file.findMany({
     where: { userId: req.user!.userId },
     skip: list_size * (page - 1),
     take: list_size,
   });
-
-  // выводит список файлов и их параметров из базы с
-  // использованием пагинации с размером страницы, указанного в
-  // передаваемом параметре list_size, по умолчанию 10 записей на страницу,
-  // если параметр пустой. Номер страницы указан в параметре page, по
-  // умолчанию 1, если не задан
 
   res.status(200).json({
     success: true,

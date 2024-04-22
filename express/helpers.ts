@@ -3,17 +3,13 @@ import { validate } from "class-validator";
 import jwt, { VerifyErrors } from "jsonwebtoken";
 import prisma from "../prisma";
 import { UserRequest } from "../common/interfaces/express-user-request.interface";
+import { plainToInstance } from "class-transformer";
 
-export function validation(Dto: any) {
+export function validation(Dto: any, reqType: "query" | "params" | "body") {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const params = { ...req.query, ...req.params, ...req.body };
+    req[reqType] = plainToInstance(Dto, req[reqType]);
 
-    const instanceDto = new Dto();
-    for (const key of Object.keys(params)) {
-      instanceDto[key] = params[key];
-    }
-
-    const errors = await validate(instanceDto);
+    const errors = await validate(req[reqType]);
 
     if (errors.length > 0) {
       return res.status(400).send({
