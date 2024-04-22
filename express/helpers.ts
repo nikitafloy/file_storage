@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { validate } from "class-validator";
 import jwt, { VerifyErrors } from "jsonwebtoken";
 import prisma from "../prisma";
+import { UserRequest } from "../common/interfaces/express-user-request.interface";
 
 export function validation(Dto: any) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -28,29 +29,26 @@ export function validation(Dto: any) {
   };
 }
 
-export async function checkAccessToken(
-  req: Request & { user?: string | jwt.JwtPayload },
-  res: Response,
-  next: NextFunction,
-) {
+export const checkAccessToken: RequestHandler = async (
+  req: UserRequest,
+  res,
+  next,
+) => {
   const authorizationHeader = req.headers["authorization"];
   const token = authorizationHeader?.split("Bearer ")[1];
 
   if (!token) {
-    return res
-      .status(401)
-      .send({ success: false, message: "No token provided" });
+    throw new Error("No token provided");
   }
 
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET_ACCESS as string);
+    req.user = jwt.verify(
+      token,
+      process.env.JWT_SECRET_ACCESS as string,
+    ) as jwt.JwtPayload;
 
-    if (!req.user || typeof req.user === "string") {
-      return res.status(400);
-    }
-
-    if (!req.user.iat) {
-      return res.status(400);
+    if (!req.user || !req.user.iat) {
+      throw new Error("User iat is not provided");
     }
 
     const session = await prisma.userSessions.findFirst({
@@ -64,23 +62,18 @@ export async function checkAccessToken(
     });
 
     if (!session) {
-      return res.status(400).send({
-        success: false,
-        message: "User with this session is not exists or expired",
-      });
+      throw new Error("User with this session is not exists or expired");
     }
 
     next();
   } catch (err) {
     console.error(err);
 
-    if ((err as VerifyErrors).message === "jwt expired") {
+    if (isVerifyErrors(err) && err.message === "jwt expired") {
       const oldTokenPayload = jwt.decode(token);
 
       if (!oldTokenPayload || typeof oldTokenPayload === "string") {
-        return res
-          .status(400)
-          .send({ success: false, message: "Can not update token" });
+        throw new Error("Can not update token");
       }
 
       const { exp, iat, ...tokenPayload } = oldTokenPayload;
@@ -93,13 +86,20 @@ export async function checkAccessToken(
 
       res.cookie("Authorization", `Bearer ${newToken}`);
 
-      req.user = jwt.verify(newToken, process.env.JWT_SECRET_ACCESS as string);
+      req.user = jwt.verify(
+        newToken,
+        process.env.JWT_SECRET_ACCESS as string,
+      ) as jwt.JwtPayload;
 
-      return next();
+      next();
+    } else {
+      throw err;
     }
 
-    return res
-      .status(400)
-      .send({ success: false, message: "Token not verified" });
+    throw new Error("Token not verified");
   }
+};
+
+export function isVerifyErrors(error: any): error is VerifyErrors {
+  return "message" in error;
 }

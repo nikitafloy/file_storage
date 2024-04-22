@@ -4,17 +4,13 @@ import { isFileExists } from "../../../utils";
 import fs from "node:fs";
 import { multerUpload } from "../../multer";
 import { uploadFile } from "./helpers";
-import { ExpressRequestWithUser } from "../../../common/interfaces/express/request-with-user.interface";
+import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
 
-export async function get(
-  req: ExpressRequestWithUser,
-  res: Response,
-  next: NextFunction,
-) {
+export async function get(req: UserRequest, res: Response, next: NextFunction) {
   const id = Number(req.params.id);
 
   const file = await prisma.file.findFirst({
-    where: { id, userId: req.user.sessionId },
+    where: { id, userId: req.user!.sessionId },
   });
 
   if (!file) {
@@ -40,7 +36,7 @@ export async function get(
 }
 
 export async function getList(
-  req: ExpressRequestWithUser,
+  req: UserRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -48,7 +44,7 @@ export async function getList(
   const page = req.params.page ? Number(req.params.page) : 1;
 
   const files = await prisma.file.findMany({
-    where: { userId: req.user.userId },
+    where: { userId: req.user!.userId },
     skip: list_size * (page - 1),
     take: list_size,
   });
@@ -66,7 +62,7 @@ export async function getList(
 }
 
 export async function update(
-  req: ExpressRequestWithUser,
+  req: UserRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -75,7 +71,7 @@ export async function update(
   const id = Number(req.params.id);
 
   const oldFile = await prisma.file.findFirst({
-    where: { id, userId: req.user.userId },
+    where: { id, userId: req.user!.userId },
   });
 
   if (!oldFile) {
@@ -121,7 +117,7 @@ export async function update(
 }
 
 export async function upload(
-  req: ExpressRequestWithUser,
+  req: UserRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -139,7 +135,7 @@ export async function upload(
 
   await prisma.file.create({
     data: {
-      userId: req.user.userId,
+      userId: req.user!.userId,
       name: file.filename,
       ext: path.extname(file.originalname).split(".")[1],
       mime_type: file.mimetype,
@@ -151,7 +147,7 @@ export async function upload(
 }
 
 export async function download(
-  req: ExpressRequestWithUser,
+  req: UserRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -160,7 +156,7 @@ export async function download(
   const file = await prisma.file.findFirst({
     where: {
       id: Number(req.params.id),
-      userId: req.user.sessionId,
+      userId: req.user!.sessionId,
     },
   });
 
@@ -182,7 +178,7 @@ export async function download(
 }
 
 export async function remove(
-  req: ExpressRequestWithUser,
+  req: UserRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -192,7 +188,7 @@ export async function remove(
   // Хранилища
 
   const file = await prisma.file.findFirst({
-    where: { id, userId: req.user.sessionId },
+    where: { id, userId: req.user!.sessionId },
   });
 
   if (!file) {

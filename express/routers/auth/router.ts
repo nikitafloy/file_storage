@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import prisma from "../../../prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { ExpressRequestWithUser } from "../../../common/interfaces/express/request-with-user.interface";
+import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
 
 export async function signIn(req: Request, res: Response, next: NextFunction) {
   const { id, password, deviceId } = req.body;
@@ -88,7 +88,7 @@ export async function signUp(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function logout(
-  req: ExpressRequestWithUser,
+  req: UserRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -101,7 +101,7 @@ export async function logout(
 
   await prisma.userSessions.update({
     where: {
-      id: req.user.session,
+      id: req.user!.session,
     },
     data: {
       lastLogoutAt: new Date(),
