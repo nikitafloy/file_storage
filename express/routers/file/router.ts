@@ -4,6 +4,7 @@ import path from "node:path";
 import { isFileExists } from "../../../utils";
 import fs from "node:fs";
 import { multerUpload } from "../../multer";
+import { uploadFile } from "./helpers";
 
 export async function get(
   req: Request & { user?: string | jwt.JwtPayload },
@@ -104,25 +105,7 @@ export async function update(
       .send({ success: false, message: "Old file is not exists" });
   }
 
-  let newFile: Express.Multer.File | undefined;
-
-  try {
-    newFile = await new Promise((resolve, reject) => {
-      multerUpload.single("file")(req, res, function (err) {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(req.file);
-      });
-    });
-  } catch (err) {
-    console.error(err);
-
-    return res
-      .status(400)
-      .json({ success: false, message: "Error uploading new file" });
-  }
+  const newFile = await uploadFile(req, res);
 
   if (!newFile) {
     return res
@@ -163,25 +146,7 @@ export async function upload(
     return res.status(400);
   }
 
-  let file: Express.Multer.File | undefined;
-
-  try {
-    file = await new Promise((resolve, reject) => {
-      multerUpload.single("file")(req, res, function (err) {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(req.file);
-      });
-    });
-  } catch (err) {
-    console.error(err);
-
-    return res
-      .status(400)
-      .json({ success: false, message: "Error uploading file" });
-  }
+  const file = await uploadFile(req, res);
 
   if (!file) {
     return res
