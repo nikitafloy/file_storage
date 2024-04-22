@@ -9,7 +9,7 @@ export async function get(req: UserRequest, res: Response) {
   const id = +req.params.id;
 
   const file = await prisma.file.findFirst({
-    where: { id, userId: req.user!.sessionId },
+    where: { id, userId: req.user!.userId },
   });
 
   if (!file) {
