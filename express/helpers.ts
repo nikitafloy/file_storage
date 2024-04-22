@@ -34,69 +34,76 @@ export const checkAccessToken: RequestHandler = async (
   res,
   next,
 ) => {
-  const authorizationHeader = req.headers["authorization"];
-  const token = authorizationHeader?.split("Bearer ")[1];
-
-  if (!token) {
-    throw new Error("No token provided");
-  }
-
   try {
-    req.user = jwt.verify(
-      token,
-      process.env.JWT_SECRET_ACCESS as string,
-    ) as jwt.JwtPayload;
-
-    if (!req.user || !req.user.iat) {
-      throw new Error("User iat is not provided");
+    const authorizationHeader = req.headers["authorization"];
+    const token = authorizationHeader?.split("Bearer ")[1];
+    if (!token) {
+      throw new Error("No token provided");
     }
 
-    const session = await prisma.userSessions.findFirst({
-      where: {
-        id: req.user.session,
-        OR: [
-          { lastLogoutAt: null },
-          { lastLogoutAt: { lte: new Date(req.user.iat * 1000) } },
-        ],
-      },
-    });
-
-    if (!session) {
-      throw new Error("User with this session is not exists or expired");
-    }
-
-    next();
-  } catch (err) {
-    console.error(err);
-
-    if (isVerifyErrors(err) && err.message === "jwt expired") {
-      const oldTokenPayload = jwt.decode(token);
-
-      if (!oldTokenPayload || typeof oldTokenPayload === "string") {
-        throw new Error("Can not update token");
-      }
-
-      const { exp, iat, ...tokenPayload } = oldTokenPayload;
-
-      const newToken = jwt.sign(
-        tokenPayload,
-        process.env.JWT_SECRET_ACCESS as string,
-        { expiresIn: "10m" },
-      );
-
-      res.cookie("Authorization", `Bearer ${newToken}`);
-
-      req.user = jwt.verify(
-        newToken,
+    try {
+      const user = jwt.verify(
+        token,
         process.env.JWT_SECRET_ACCESS as string,
       ) as jwt.JwtPayload;
 
-      next();
-    } else {
-      throw err;
-    }
+      if (!user.iat) {
+        throw new Error("User iat is not provided");
+      }
 
-    throw new Error("Token not verified");
+      const session = await prisma.userSessions.findFirst({
+        where: {
+          id: user.session,
+          OR: [
+            { lastLogoutAt: null },
+            { lastLogoutAt: { lte: new Date(user.iat * 1000) } },
+          ],
+        },
+      });
+
+      if (!session) {
+        throw new Error("User with this session is not exists or expired");
+      }
+
+      req.user = user;
+
+      next();
+    } catch (err) {
+      console.error(err);
+
+      if (!isVerifyErrors(err)) {
+        throw err;
+      }
+
+      if (err.message === "jwt expired") {
+        const oldTokenPayload = jwt.decode(token);
+        if (!oldTokenPayload || typeof oldTokenPayload === "string") {
+          throw new Error("Can not update token");
+        }
+
+        const { exp, iat, ...tokenPayload } = oldTokenPayload;
+
+        const newToken = jwt.sign(
+          tokenPayload,
+          process.env.JWT_SECRET_ACCESS as string,
+          { expiresIn: "10m" },
+        );
+
+        res.cookie("Authorization", `Bearer ${newToken}`);
+
+        req.user = jwt.verify(
+          newToken,
+          process.env.JWT_SECRET_ACCESS as string,
+        ) as jwt.JwtPayload;
+
+        next();
+        return;
+      }
+
+      throw new Error("Token not verified");
+    }
+  } catch (err) {
+    next(err);
   }
 };
 
