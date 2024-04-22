@@ -1,13 +1,12 @@
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import path from "node:path";
 import { isFileExists } from "../../../utils";
 import fs from "node:fs";
-import { multerUpload } from "../../multer";
 import { uploadFile } from "./helpers";
 import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
 
-export async function get(req: UserRequest, res: Response, next: NextFunction) {
-  const id = Number(req.params.id);
+export async function get(req: UserRequest, res: Response) {
+  const id = +req.params.id;
 
   const file = await prisma.file.findFirst({
     where: { id, userId: req.user!.sessionId },
@@ -27,21 +26,15 @@ export async function get(req: UserRequest, res: Response, next: NextFunction) {
       .send({ success: false, message: "File is not exists" });
   }
 
-  // вывод информации о выбранном файле
-
   res.status(200).json({
     success: true,
     message: { file: { ...file, size: file.size.toString() } },
   });
 }
 
-export async function getList(
-  req: UserRequest,
-  res: Response,
-  next: NextFunction,
-) {
-  const list_size = req.params.list_size ? Number(req.params.list_size) : 10;
-  const page = req.params.page ? Number(req.params.page) : 1;
+export async function getList(req: UserRequest, res: Response) {
+  const list_size = req.params.list_size ? +req.params.list_size : 10;
+  const page = req.params.page ? +req.params.page : 1;
 
   const files = await prisma.file.findMany({
     where: { userId: req.user!.userId },
@@ -61,14 +54,10 @@ export async function getList(
   });
 }
 
-export async function update(
-  req: UserRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function update(req: UserRequest, res: Response) {
   // обновление текущего документа на новый в базе и
   // локальном хранилище
-  const id = Number(req.params.id);
+  const id = +req.params.id;
 
   const oldFile = await prisma.file.findFirst({
     where: { id, userId: req.user!.userId },
@@ -116,11 +105,7 @@ export async function update(
   res.status(204).send();
 }
 
-export async function upload(
-  req: UserRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function upload(req: UserRequest, res: Response) {
   // добавление нового файла в систему и запись
   // параметров файла в базу: название, расширение, MIME type, размер, дата
   // Загрузки;
@@ -146,18 +131,12 @@ export async function upload(
   res.status(204).send();
 }
 
-export async function download(
-  req: UserRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function download(req: UserRequest, res: Response) {
   // скачивание конкретного файла
+  const id = +req.params.id;
 
   const file = await prisma.file.findFirst({
-    where: {
-      id: Number(req.params.id),
-      userId: req.user!.sessionId,
-    },
+    where: { id, userId: req.user!.sessionId },
   });
 
   if (!file) {
@@ -177,15 +156,8 @@ export async function download(
   res.download(filePath);
 }
 
-export async function remove(
-  req: UserRequest,
-  res: Response,
-  next: NextFunction,
-) {
-  const id = Number(req.params.id);
-
-  // удаляет документ из базы и локального
-  // Хранилища
+export async function remove(req: UserRequest, res: Response) {
+  const id = +req.params.id;
 
   const file = await prisma.file.findFirst({
     where: { id, userId: req.user!.sessionId },
