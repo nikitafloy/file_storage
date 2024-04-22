@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import path from "node:path";
 import { isFileExists } from "../../../utils";
 import fs from "node:fs";
-import { multerUpload } from "./index";
+import { multerUpload } from "../../multer";
 
 export async function get(
   req: Request & { user?: string | jwt.JwtPayload },
