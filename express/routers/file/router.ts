@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import path from "node:path";
-import * as fs from "node:fs";
+import { isFileExists } from "../../../utils";
 
 export async function get(req: Request, res: Response, next: NextFunction) {
   const { id } = req.params;
@@ -105,17 +105,9 @@ export async function download(
       .send({ success: false, message: "File was not found" });
   }
 
-  let isFileExists: boolean;
   const filePath = path.join(`./uploads/${file.name}`);
 
-  try {
-    await fs.promises.access(filePath);
-    isFileExists = true;
-  } catch (err) {
-    isFileExists = false;
-  }
-
-  if (!isFileExists) {
+  if (!(await isFileExists(filePath))) {
     return res
       .status(400)
       .send({ success: false, message: "File is not exists" });
