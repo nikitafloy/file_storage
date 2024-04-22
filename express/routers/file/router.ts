@@ -10,8 +10,23 @@ export async function get(req: Request, res: Response, next: NextFunction) {
   res.status(200).json({ success: true, message: { file: {} } });
 }
 
-export async function getList(req: Request, res: Response, next: NextFunction) {
-  const { list_size = 10, page = 1 } = req.params;
+export async function getList(
+  req: Request & { user?: string | jwt.JwtPayload },
+  res: Response,
+  next: NextFunction,
+) {
+  const list_size = req.params.list_size ? Number(req.params.list_size) : 10;
+  const page = req.params.page ? Number(req.params.page) : 1;
+
+  if (!req.user || typeof req.user === "string") {
+    return res.status(400);
+  }
+
+  const files = await prisma.file.findMany({
+    where: { userId: req.user.userId },
+    skip: list_size * (page - 1),
+    take: list_size,
+  });
 
   // выводит список файлов и их параметров из базы с
   // использованием пагинации с размером страницы, указанного в
@@ -19,7 +34,10 @@ export async function getList(req: Request, res: Response, next: NextFunction) {
   // если параметр пустой. Номер страницы указан в параметре page, по
   // умолчанию 1, если не задан
 
-  res.status(200).json({ success: true, message: { files: {} } });
+  res.status(200).json({
+    success: true,
+    message: { files: files.map((f) => ({ ...f, size: f.size.toString() })) },
+  });
 }
 
 export async function update(req: Request, res: Response, next: NextFunction) {
@@ -52,6 +70,7 @@ export async function upload(
 
   await prisma.file.create({
     data: {
+      userId: req.user.userId,
       name: req.file.filename,
       ext: path.extname(req.file.originalname).split(".")[1],
       mime_type: req.file.mimetype,
