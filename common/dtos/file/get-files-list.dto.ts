@@ -1,18 +1,18 @@
-import { IsNotEmpty, IsNumber, IsOptional, Min } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsPositive } from "class-validator";
 import { Transform } from "class-transformer";
 
 export class GetFilesListDto {
   @IsNotEmpty()
   @IsOptional()
   @IsNumber()
-  @Min(1)
+  @IsPositive()
   @Transform(({ value }) => Number(value))
   page?: number;
 
   @IsNotEmpty()
   @IsOptional()
   @IsNumber()
-  @Min(1)
+  @IsPositive()
   @Transform(({ value }) => Number(value))
   list_size?: number;
 }
