@@ -1,6 +1,6 @@
 import express from "express";
 
-import { signIn, updateToken, signUp, logout } from "./router";
+import { signIn, updateToken, signUp, logout } from "./controller";
 import { checkAccessToken, validation } from "../../middleware";
 import { SignupDto, SigninDto, UpdateTokenDto } from "../../../common";
 import { getInfo } from "../user/router";
