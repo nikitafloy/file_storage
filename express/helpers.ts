@@ -1,23 +1,34 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import { validate } from "class-validator";
+import { validate, ValidationError } from "class-validator";
 import jwt, { VerifyErrors } from "jsonwebtoken";
 import prisma from "../prisma";
 import { UserRequest } from "../common/interfaces/express-user-request.interface";
 import { plainToInstance } from "class-transformer";
 
-export function validation(Dto: any, reqType: "query" | "params" | "body") {
+export function validation(
+  validateData: { Dto: any; reqType: "query" | "params" | "body" }[],
+) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    req[reqType] = plainToInstance(Dto, req[reqType]);
+    const errors: string[] = [];
 
-    const errors = await validate(req[reqType]);
+    for await (const data of validateData) {
+      const { Dto, reqType } = data;
+
+      req[reqType] = plainToInstance(Dto, req[reqType]);
+
+      await validate(req[reqType]).then((errs) => {
+        if (!errs.length) {
+          return;
+        }
+
+        errors.push(getAllConstraints(errs).join(", "));
+      });
+    }
 
     if (errors.length > 0) {
       return res.status(400).send({
         success: false,
-        errors: errors
-          .map((e) => e.constraints && Object.values(e.constraints).join(", "))
-          .filter(Boolean)
-          .join(", "),
+        errors: errors.join(", "),
       });
     }
 
@@ -102,6 +113,24 @@ export const checkAccessToken: RequestHandler = async (
     next(err);
   }
 };
+
+function getAllConstraints(errors: ValidationError[]): string[] {
+  const constraints: string[] = [];
+
+  for (const error of errors) {
+    if (error.constraints) {
+      const constraintValues = Object.values(error.constraints);
+      constraints.push(...constraintValues);
+    }
+
+    if (error.children) {
+      const childConstraints = getAllConstraints(error.children);
+      constraints.push(...childConstraints);
+    }
+  }
+
+  return constraints;
+}
 
 export function isVerifyErrors(error: any): error is VerifyErrors {
   return "message" in error;
