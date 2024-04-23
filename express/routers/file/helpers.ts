@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
 import { multerUpload } from "../../multer";
+import path from "node:path";
+import { MULTER_DESTINATION_FOLDER } from "../../../constants";
+import { File } from "@prisma/client";
+
+export function getFilePath(file: File) {
+  return path.join(`.${MULTER_DESTINATION_FOLDER}/${file.name}`);
+}
 
 export async function uploadFile(req: Request, res: Response) {
   let file: Express.Multer.File | undefined;

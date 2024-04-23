@@ -1,5 +1,5 @@
 import express from "express";
-import { get, getList, update, upload, download, remove } from "./router";
+import { get, getList, update, upload, download, remove } from "./controller";
 import { checkAccessToken, validation } from "../../middleware";
 import {
   GetFileInfoDto,
