@@ -1,10 +1,10 @@
-import { IsNotEmpty, IsNumber, Min } from "class-validator";
+import { IsNotEmpty, IsNumber, IsPositive } from "class-validator";
 import { Transform } from "class-transformer";
 
 export class DownloadFileDto {
   @IsNotEmpty()
   @IsNumber()
-  @Min(1)
+  @IsPositive()
   @Transform(({ value }) => Number(value))
   id!: number;
 }
