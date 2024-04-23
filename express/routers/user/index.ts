@@ -1,9 +1,9 @@
 import express from "express";
-
-import { getInfo } from "./router";
+import { getInfo } from "./controller";
+import { checkAccessToken } from "../../middleware";
 
 const router = express.Router();
 
-router.post("/info", getInfo);
+router.get("/info", checkAccessToken, getInfo);
 
 export { router };
