@@ -6,7 +6,12 @@ export const multerUpload = multer({
       cb(null, "uploads/");
     },
     filename: function (_, file, cb) {
-      cb(null, `${Date.now()}-${file.originalname}`);
+      cb(
+        null,
+        `${Buffer.from(`${Date.now()}-${file.originalname}`, "latin1").toString(
+          "utf8",
+        )}`,
+      );
     },
   }),
   limits: { fileSize: 52428800 },
