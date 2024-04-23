@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../../../prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { UserRequest } from "../../../common";
+import { UpdateTokenDto, UserRequest } from "../../../common";
 
 export async function signIn(req: Request, res: Response) {
   const { id, password, deviceId } = req.body;
@@ -53,12 +53,53 @@ export async function signIn(req: Request, res: Response) {
     .json({ success: true, message: { accessToken, refreshToken } });
 }
 
-export async function updateToken(req: Request, res: Response) {
-  // const {} = req.cookies;
+export async function updateToken(
+  req: UserRequest & { body: UpdateTokenDto },
+  res: Response,
+) {
+  const { refreshToken } = req.body;
 
-  // Обновление bearer токена по refresh токену
+  try {
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_SECRET_REFRESH as string,
+    ) as jwt.JwtPayload;
+  } catch (err) {
+    return res.status(400).send({ success: false, message: "Invalid token" });
+  }
 
-  res.status(204);
+  const { exp, iat, ...tokenPayload } = jwt.decode(
+    refreshToken,
+  ) as jwt.JwtPayload;
+
+  if (!iat) {
+    throw new Error("User iat is not provided");
+  }
+
+  const session = await prisma.userSessions.findFirst({
+    where: {
+      id: tokenPayload.session,
+      OR: [
+        { lastLogoutAt: null },
+        { lastLogoutAt: { lte: new Date(iat * 1000) } },
+      ],
+    },
+  });
+
+  if (!session) {
+    return res.status(400).send({
+      success: false,
+      message: "User with this session is not exists or expired",
+    });
+  }
+
+  const accessToken = jwt.sign(
+    tokenPayload,
+    process.env.JWT_SECRET_ACCESS as string,
+    { expiresIn: "10m" },
+  );
+
+  res.status(200).json({ success: true, accessToken });
 }
 
 export async function signUp(req: Request, res: Response) {
