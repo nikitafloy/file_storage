@@ -1,9 +1,12 @@
-import prisma from "../../../prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import {
+  UserRepository,
+  UserSessionsRepository,
+} from "../../../prisma/repositories";
 
 export async function signIn(id: string, password: string, deviceId: string) {
-  const user = await prisma.user.findFirst({ where: { id } });
+  const user = await UserRepository.getById(id);
   if (!user) {
     throw new Error("User not found");
   }
@@ -14,12 +17,7 @@ export async function signIn(id: string, password: string, deviceId: string) {
 
   const { userId } = user;
 
-  const session = await prisma.userSessions
-    .create({ data: { userId, deviceId } })
-    .catch((err) => {
-      console.error(err);
-    });
-
+  const session = await UserSessionsRepository.create(userId, deviceId);
   if (!session) {
     throw new Error("User with this session already exists");
   }
@@ -58,15 +56,10 @@ export async function updateToken(refreshToken: string) {
     throw new Error("User iat is not provided");
   }
 
-  const session = await prisma.userSessions.findFirst({
-    where: {
-      id: tokenPayload.session,
-      OR: [
-        { lastLogoutAt: null },
-        { lastLogoutAt: { lte: new Date(iat * 1000) } },
-      ],
-    },
-  });
+  const session = await UserSessionsRepository.getActive(
+    tokenPayload.session,
+    iat,
+  );
 
   if (!session) {
     throw new Error("User with this session is not exists or expired");
@@ -82,26 +75,14 @@ export async function updateToken(refreshToken: string) {
 }
 
 export async function signUp(id: string, password: string) {
-  const user = await prisma.user.findFirst({ where: { id } });
+  const user = await UserRepository.getById(id);
   if (user) {
     throw new Error("User already exists");
   }
 
-  await prisma.user.create({
-    data: {
-      id,
-      password: await bcrypt.hash(password, 10),
-    },
-  });
+  await UserRepository.create(id, await bcrypt.hash(password, 10));
 }
 
 export async function logout(session: number) {
-  await prisma.userSessions.update({
-    where: {
-      id: session,
-    },
-    data: {
-      lastLogoutAt: new Date(),
-    },
-  });
+  await UserSessionsRepository.update(session, new Date());
 }
