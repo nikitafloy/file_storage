@@ -8,9 +8,17 @@ import { getInfo } from "../user/router";
 
 const router = express.Router();
 
-router.post("/signin", validation(SigninDto, "body"), signIn);
+router.post(
+  "/signin",
+  validation([{ Dto: SigninDto, reqType: "body" }]),
+  signIn,
+);
 router.post("/signin/new_token", updateToken);
-router.post("/signup", validation(SignupDto, "body"), signUp);
+router.post(
+  "/signup",
+  validation([{ Dto: SignupDto, reqType: "body" }]),
+  signUp,
+);
 router.get("/info", checkAccessToken, getInfo);
 router.get("/logout", checkAccessToken, logout);
 

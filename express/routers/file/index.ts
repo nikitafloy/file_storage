@@ -11,21 +11,21 @@ const router = express.Router();
 
 router.get(
   "/list",
-  validation(GetFilesListDto, "query"),
+  validation([{ Dto: GetFilesListDto, reqType: "query" }]),
   checkAccessToken,
   getList,
 );
 
 router.get(
   "/download/:id",
-  validation(DownloadFileDto, "query"),
+  validation([{ Dto: DownloadFileDto, reqType: "query" }]),
   checkAccessToken,
   download,
 );
 
 router.put(
   "/update/:id",
-  validation(UpdateFileDto, "query"),
+  validation([{ Dto: UpdateFileDto, reqType: "query" }]),
   checkAccessToken,
   update,
 );
@@ -34,11 +34,16 @@ router.post("/upload", checkAccessToken, upload);
 
 router.delete(
   "/delete/:id",
-  validation(DeleteFileDto, "query"),
+  validation([{ Dto: DeleteFileDto, reqType: "query" }]),
   checkAccessToken,
   remove,
 );
 
-router.get("/:id", validation(GetFileInfoDto, "query"), checkAccessToken, get);
+router.get(
+  "/:id",
+  validation([{ Dto: GetFileInfoDto, reqType: "query" }]),
+  checkAccessToken,
+  get,
+);
 
 export { router };
