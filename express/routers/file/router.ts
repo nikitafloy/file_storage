@@ -5,9 +5,16 @@ import fs from "node:fs";
 import { uploadFile } from "./helpers";
 import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
 import { GetFilesListDto } from "../../../common/dtos/file/get-files-list.dto";
+import { UpdateFileDto } from "../../../common/dtos/file/update-file.dto";
+import { GetFileInfoDto } from "../../../common/dtos/file/get-file-info.dto";
+import { DownloadFileDto } from "../../../common/dtos/file/download-file.dto";
+import { DeleteFileDto } from "../../../common/dtos/file/delete-file.dto";
 
-export async function get(req: UserRequest, res: Response) {
-  const id = +req.params.id;
+export async function get(
+  req: UserRequest & { params: GetFileInfoDto },
+  res: Response,
+) {
+  const { id } = req.params;
 
   const file = await prisma.file.findFirst({
     where: { id, userId: req.user!.userId },
@@ -52,10 +59,13 @@ export async function getList(
   });
 }
 
-export async function update(req: UserRequest, res: Response) {
+export async function update(
+  req: UserRequest & { params: UpdateFileDto },
+  res: Response,
+) {
   // обновление текущего документа на новый в базе и
   // локальном хранилище
-  const id = +req.params.id;
+  const { id } = req.params;
 
   const oldFile = await prisma.file.findFirst({
     where: { id, userId: req.user!.userId },
@@ -129,9 +139,12 @@ export async function upload(req: UserRequest, res: Response) {
   res.status(204).send();
 }
 
-export async function download(req: UserRequest, res: Response) {
+export async function download(
+  req: UserRequest & { params: DownloadFileDto },
+  res: Response,
+) {
   // скачивание конкретного файла
-  const id = +req.params.id;
+  const { id } = req.params;
 
   const file = await prisma.file.findFirst({
     where: { id, userId: req.user!.sessionId },
@@ -154,11 +167,14 @@ export async function download(req: UserRequest, res: Response) {
   res.download(filePath);
 }
 
-export async function remove(req: UserRequest, res: Response) {
-  const id = +req.params.id;
+export async function remove(
+  req: UserRequest & { params: DeleteFileDto },
+  res: Response,
+) {
+  const { id } = req.params;
 
   const file = await prisma.file.findFirst({
-    where: { id, userId: req.user!.sessionId },
+    where: { id, userId: req.user!.userId },
   });
 
   if (!file) {

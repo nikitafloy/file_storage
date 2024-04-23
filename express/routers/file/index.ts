@@ -18,14 +18,14 @@ router.get(
 
 router.get(
   "/download/:id",
-  validation([{ Dto: DownloadFileDto, reqType: "query" }]),
+  validation([{ Dto: DownloadFileDto, reqType: "params" }]),
   checkAccessToken,
   download,
 );
 
 router.put(
   "/update/:id",
-  validation([{ Dto: UpdateFileDto, reqType: "query" }]),
+  validation([{ Dto: UpdateFileDto, reqType: "params" }]),
   checkAccessToken,
   update,
 );
@@ -34,14 +34,14 @@ router.post("/upload", checkAccessToken, upload);
 
 router.delete(
   "/delete/:id",
-  validation([{ Dto: DeleteFileDto, reqType: "query" }]),
+  validation([{ Dto: DeleteFileDto, reqType: "params" }]),
   checkAccessToken,
   remove,
 );
 
 router.get(
   "/:id",
-  validation([{ Dto: GetFileInfoDto, reqType: "query" }]),
+  validation([{ Dto: GetFileInfoDto, reqType: "params" }]),
   checkAccessToken,
   get,
 );
