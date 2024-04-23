@@ -102,8 +102,13 @@ export async function download(
 export async function remove(
   req: UserRequest & { params: DeleteFileDto },
   res: Response,
+  next: NextFunction,
 ) {
-  await component.remove(req.params.id, req.user!.userId);
+  try {
+    await component.remove(req.params.id, req.user!.userId);
 
-  res.status(204).send();
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
 }
