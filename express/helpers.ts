@@ -82,31 +82,6 @@ export const checkAccessToken: RequestHandler = async (
         throw err;
       }
 
-      if (err.message === "jwt expired") {
-        const oldTokenPayload = jwt.decode(token);
-        if (!oldTokenPayload || typeof oldTokenPayload === "string") {
-          throw new Error("Can not update token");
-        }
-
-        const { exp, iat, ...tokenPayload } = oldTokenPayload;
-
-        const newToken = jwt.sign(
-          tokenPayload,
-          process.env.JWT_SECRET_ACCESS as string,
-          { expiresIn: "10m" },
-        );
-
-        res.cookie("Authorization", `Bearer ${newToken}`);
-
-        req.user = jwt.verify(
-          newToken,
-          process.env.JWT_SECRET_ACCESS as string,
-        ) as jwt.JwtPayload;
-
-        next();
-        return;
-      }
-
       throw new Error("Token not verified");
     }
   } catch (err) {
