@@ -65,8 +65,6 @@ export async function update(
   req: UserRequest & { params: UpdateFileDto },
   res: Response,
 ) {
-  // обновление текущего документа на новый в базе и
-  // локальном хранилище
   const { id } = req.params;
 
   const oldFile = await prisma.file.findFirst({
@@ -97,11 +95,6 @@ export async function update(
 
   await fs.promises.unlink(filePath);
 
-  // await fs.promises.rename(
-  //   path.join(`./uploads/${newFile.filename}`),
-  //   path.join(`./uploads/${oldFile.name}`),
-  // );
-
   await prisma.file.update({
     where: { id },
     data: {
@@ -116,10 +109,6 @@ export async function update(
 }
 
 export async function upload(req: UserRequest, res: Response) {
-  // добавление нового файла в систему и запись
-  // параметров файла в базу: название, расширение, MIME type, размер, дата
-  // Загрузки;
-
   const file = await uploadFile(req, res);
 
   if (!file) {
@@ -145,7 +134,6 @@ export async function download(
   req: UserRequest & { params: DownloadFileDto },
   res: Response,
 ) {
-  // скачивание конкретного файла
   const { id } = req.params;
 
   const file = await prisma.file.findFirst({

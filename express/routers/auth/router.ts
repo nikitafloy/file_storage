@@ -7,8 +7,6 @@ import { UpdateTokenDto, UserRequest } from "../../../common";
 export async function signIn(req: Request, res: Response) {
   const { id, password, deviceId } = req.body;
 
-  // запрос bearer токена по id и паролю
-
   const user = await prisma.user.findFirst({ where: { id } });
   if (!user) {
     return res.status(400).send({ success: false, message: "User not found" });
@@ -103,10 +101,8 @@ export async function updateToken(
 }
 
 export async function signUp(req: Request, res: Response) {
-  // id - номер телефона или email
   const { id, password } = req.body;
 
-  // регистрация нового пользователя
   const user = await prisma.user.findFirst({ where: { id } });
   if (user) {
     return res
@@ -125,13 +121,6 @@ export async function signUp(req: Request, res: Response) {
 }
 
 export async function logout(req: UserRequest, res: Response) {
-  // выйти из системы
-  // После выхода необходимо заблокировать текущие токены пользователя( методы с
-  // этими токена больше не должны срабатывать). При следующем входе,
-  // пользователь должен получить новую пару токенов, отличную от тех, которые были
-  // при выходе.
-  // Старый должен перестать работать;
-
   await prisma.userSessions.update({
     where: {
       id: req.user!.session,
