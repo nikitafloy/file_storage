@@ -4,6 +4,8 @@ import path from "node:path";
 import { MULTER_DESTINATION_FOLDER } from "../../../constants";
 import { File } from "@prisma/client";
 
+const singleMulterUpload = multerUpload.single("file");
+
 export function getFilePath(file: File) {
   return path.join(`.${MULTER_DESTINATION_FOLDER}/${file.name}`);
 }
@@ -13,7 +15,7 @@ export async function uploadFile(req: Request, res: Response) {
 
   try {
     file = await new Promise((resolve, reject) => {
-      multerUpload.single("file")(req, res, function (err) {
+      singleMulterUpload(req, res, function (err) {
         if (err) {
           return reject(err);
         }

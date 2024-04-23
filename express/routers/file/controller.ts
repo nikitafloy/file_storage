@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { getFile } from "../../../prisma/repositories";
+import { FileRepository } from "../../../prisma/repositories";
 import * as component from "./component";
 import {
   UserRequest,
@@ -83,7 +83,7 @@ export async function download(
   next: NextFunction,
 ) {
   try {
-    const file = await getFile(req.params.id, req.user!.userId);
+    const file = await FileRepository.getFile(req.params.id, req.user!.userId);
     if (!file) {
       throw new Error("File was not found");
     }
