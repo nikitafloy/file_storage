@@ -2,8 +2,7 @@ import express from "express";
 
 import { signIn, updateToken, signUp, logout } from "./router";
 import { checkAccessToken, validation } from "../../helpers";
-import { SignupDto } from "../../../common/dtos/auth/signup.dto";
-import { SigninDto } from "../../../common/dtos/auth/signin.dto";
+import { SignupDto, SigninDto } from "../../../common";
 import { getInfo } from "../user/router";
 
 const router = express.Router();

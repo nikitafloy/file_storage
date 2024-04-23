@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import { validate, ValidationError } from "class-validator";
 import jwt, { VerifyErrors } from "jsonwebtoken";
 import prisma from "../prisma";
-import { UserRequest } from "../common/interfaces/express-user-request.interface";
+import { UserRequest } from "../common";
 import { plainToInstance } from "class-transformer";
 
 export function validation(

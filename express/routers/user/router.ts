@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
+import { UserRequest } from "../../../common";
 
 export async function getInfo(
   req: UserRequest,

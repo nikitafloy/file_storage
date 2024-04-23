@@ -1,11 +1,13 @@
 import express from "express";
 import { get, getList, update, upload, download, remove } from "./router";
 import { checkAccessToken, validation } from "../../helpers";
-import { GetFileInfoDto } from "../../../common/dtos/file/get-file-info.dto";
-import { DeleteFileDto } from "../../../common/dtos/file/delete-file.dto";
-import { UpdateFileDto } from "../../../common/dtos/file/update-file.dto";
-import { DownloadFileDto } from "../../../common/dtos/file/download-file.dto";
-import { GetFilesListDto } from "../../../common/dtos/file/get-files-list.dto";
+import {
+  GetFileInfoDto,
+  DeleteFileDto,
+  UpdateFileDto,
+  DownloadFileDto,
+  GetFilesListDto,
+} from "../../../common";
 
 const router = express.Router();
 

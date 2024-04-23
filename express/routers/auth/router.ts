@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import prisma from "../../../prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
+import { UserRequest } from "../../../common";
 
 export async function signIn(req: Request, res: Response, next: NextFunction) {
   const { id, password, deviceId } = req.body;

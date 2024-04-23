@@ -3,12 +3,14 @@ import path from "node:path";
 import { isFileExists } from "../../../utils";
 import fs from "node:fs";
 import { uploadFile } from "./helpers";
-import { UserRequest } from "../../../common/interfaces/express-user-request.interface";
-import { GetFilesListDto } from "../../../common/dtos/file/get-files-list.dto";
-import { UpdateFileDto } from "../../../common/dtos/file/update-file.dto";
-import { GetFileInfoDto } from "../../../common/dtos/file/get-file-info.dto";
-import { DownloadFileDto } from "../../../common/dtos/file/download-file.dto";
-import { DeleteFileDto } from "../../../common/dtos/file/delete-file.dto";
+import {
+  UserRequest,
+  GetFilesListDto,
+  UpdateFileDto,
+  GetFileInfoDto,
+  DownloadFileDto,
+  DeleteFileDto,
+} from "../../../common";
 
 export async function get(
   req: UserRequest & { params: GetFileInfoDto },
