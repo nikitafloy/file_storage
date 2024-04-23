@@ -1,7 +1,7 @@
 import express from "express";
 
 import { signIn, updateToken, signUp, logout } from "./router";
-import { checkAccessToken, validation } from "../../helpers";
+import { checkAccessToken, validation } from "../../middleware";
 import { SignupDto, SigninDto } from "../../../common";
 import { getInfo } from "../user/router";
 
