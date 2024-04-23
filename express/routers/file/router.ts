@@ -137,7 +137,7 @@ export async function download(
   const { id } = req.params;
 
   const file = await prisma.file.findFirst({
-    where: { id, userId: req.user!.sessionId },
+    where: { id, userId: req.user!.userId },
   });
 
   if (!file) {
