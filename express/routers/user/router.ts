@@ -1,11 +1,7 @@
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import { UserRequest } from "../../../common";
 
-export async function getInfo(
-  req: UserRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function getInfo(req: UserRequest, res: Response) {
   // возвращает id пользователя
   res
     .status(200)

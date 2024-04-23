@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserRequest } from "../../../common";
 
-export async function signIn(req: Request, res: Response, next: NextFunction) {
+export async function signIn(req: Request, res: Response) {
   const { id, password, deviceId } = req.body;
 
   // запрос bearer токена по id и паролю
@@ -53,11 +53,7 @@ export async function signIn(req: Request, res: Response, next: NextFunction) {
     .json({ success: true, message: { accessToken, refreshToken } });
 }
 
-export async function updateToken(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+export async function updateToken(req: Request, res: Response) {
   // const {} = req.cookies;
 
   // Обновление bearer токена по refresh токену
@@ -65,7 +61,7 @@ export async function updateToken(
   res.status(204);
 }
 
-export async function signUp(req: Request, res: Response, next: NextFunction) {
+export async function signUp(req: Request, res: Response) {
   // id - номер телефона или email
   const { id, password } = req.body;
 
@@ -87,11 +83,7 @@ export async function signUp(req: Request, res: Response, next: NextFunction) {
   res.status(204).send();
 }
 
-export async function logout(
-  req: UserRequest,
-  res: Response,
-  next: NextFunction,
-) {
+export async function logout(req: UserRequest, res: Response) {
   // выйти из системы
   // После выхода необходимо заблокировать текущие токены пользователя( методы с
   // этими токена больше не должны срабатывать). При следующем входе,
