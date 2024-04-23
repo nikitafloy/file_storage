@@ -11,6 +11,10 @@ import {
   DownloadFileDto,
   DeleteFileDto,
 } from "../../../common";
+import {
+  MULTER_DESTINATION_FOLDER,
+  MULTER_MAX_FILE_NAME_LENGTH,
+} from "../../../constants";
 
 export async function get(
   req: UserRequest & { params: GetFileInfoDto },
@@ -28,7 +32,7 @@ export async function get(
       .send({ success: false, message: "File was not found" });
   }
 
-  const filePath = path.join(`./uploads/${file.name}`);
+  const filePath = path.join(`.${MULTER_DESTINATION_FOLDER}/${file.name}`);
 
   if (!(await isFileExists(filePath))) {
     return res
@@ -77,7 +81,7 @@ export async function update(
       .send({ success: false, message: "Old file was not found" });
   }
 
-  const filePath = path.join(`./uploads/${oldFile.name}`);
+  const filePath = path.join(`.${MULTER_DESTINATION_FOLDER}/${oldFile.name}`);
 
   if (!(await isFileExists(filePath))) {
     return res
@@ -95,11 +99,13 @@ export async function update(
 
   await fs.promises.unlink(filePath);
 
+  const ext = path.extname(newFile.originalname).split(".")[1];
+
   await prisma.file.update({
     where: { id },
     data: {
-      name: newFile.filename,
-      ext: path.extname(newFile.originalname).split(".")[1],
+      name: `${newFile.filename.slice(0, MULTER_MAX_FILE_NAME_LENGTH)}.${ext}`,
+      ext,
       mime_type: newFile.mimetype,
       size: newFile.size,
     },
@@ -146,7 +152,7 @@ export async function download(
       .send({ success: false, message: "File was not found" });
   }
 
-  const filePath = path.join(`./uploads/${file.name}`);
+  const filePath = path.join(`.${MULTER_DESTINATION_FOLDER}/${file.name}`);
 
   if (!(await isFileExists(filePath))) {
     return res
@@ -173,7 +179,7 @@ export async function remove(
       .send({ success: false, message: "File was not found" });
   }
 
-  const filePath = path.join(`./uploads/${file.name}`);
+  const filePath = path.join(`.${MULTER_DESTINATION_FOLDER}/${file.name}`);
 
   if (!(await isFileExists(filePath))) {
     return res

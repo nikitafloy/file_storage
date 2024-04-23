@@ -1,9 +1,14 @@
 import multer from "multer";
 
+import {
+  MULTER_DESTINATION_FOLDER,
+  MULTER_MAX_FILE_SIZE,
+} from "../../constants";
+
 export const multerUpload = multer({
   storage: multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "uploads/");
+      cb(null, MULTER_DESTINATION_FOLDER);
     },
     filename: function (_, file, cb) {
       cb(
@@ -14,5 +19,5 @@ export const multerUpload = multer({
       );
     },
   }),
-  limits: { fileSize: 52428800 },
+  limits: { fileSize: MULTER_MAX_FILE_SIZE },
 });
