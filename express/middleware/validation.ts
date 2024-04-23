@@ -14,13 +14,12 @@ export function validation(
 
       req[reqType] = plainToInstance(Dto, req[reqType]);
 
-      await validate(req[reqType]).then((errs) => {
-        if (!errs.length) {
-          return;
-        }
+      const errs = await validate(req[reqType]);
+      if (!errs.length) {
+        return;
+      }
 
-        errors.push(getAllConstraints(errs).join(", "));
-      });
+      errors.push(getAllConstraints(errs).join(", "));
     }
 
     if (errors.length > 0) {
