@@ -1,1 +1,1 @@
-export * from "./express-user-request.interface";
+export * from "./user-request.interface";
