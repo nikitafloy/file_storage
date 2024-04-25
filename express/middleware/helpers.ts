@@ -20,5 +20,5 @@ export function getAllConstraints(errors: ValidationError[]): string[] {
 }
 
 export function isVerifyErrors(error: any): error is VerifyErrors {
-  return "message" in error;
+  return "inner" in error || "expiredAt" in error || "date" in error;
 }
