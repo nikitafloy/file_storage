@@ -36,7 +36,7 @@ model File {
   userId     Int
   user       User     @relation(references: [userId], fields: [userId])
   name       String
-  ext        String
+  ext        String?
   mime_type  String
   size       BigInt
   uploadedAt DateTime @default(now())
