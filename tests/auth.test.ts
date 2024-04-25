@@ -1,6 +1,7 @@
 import request from "supertest";
 import { app, server } from "../express";
 import { uuid } from "uuidv4";
+import jwt from "jsonwebtoken";
 
 describe("auth controller", () => {
   const email = "nikita@mail.ru";
@@ -46,6 +47,29 @@ describe("auth controller", () => {
 
     expect(result.body.message.accessToken).toBeTruthy();
     expect(result.body.message.refreshToken).toBeTruthy();
+  });
+
+  test("logout should return 400 for invalid access token", async () => {
+    const session = await prisma.userSessions.findFirst({
+      where: { userId },
+    });
+
+    const invalidAccessToken = jwt.sign(
+      { userId, session: session?.id },
+      process.env.JWT_SECRET_ACCESS as string,
+      { expiresIn: -30 },
+    );
+
+    await request(app)
+      .get("/auth/logout")
+      .set("Authorization", `Bearer ${invalidAccessToken}`)
+      .expect((res) => {
+        expect(res.status).toBe(400);
+        expect(res.body).toStrictEqual({
+          success: false,
+          message: "Token not verified",
+        });
+      });
   });
 
   test("new_token should return 200 and new accessToken", async () => {
