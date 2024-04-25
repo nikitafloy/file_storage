@@ -4,6 +4,7 @@ import { createTestUser } from "./helpers";
 import FormData from "form-data";
 import fs from "node:fs";
 import path from "node:path";
+import { MULTER_DESTINATION_FOLDER } from "../constants";
 
 describe("file controller", () => {
   const email = "nikita@mail.ru";
@@ -15,6 +16,12 @@ describe("file controller", () => {
     await prisma.file.deleteMany();
     await prisma.userSessions.deleteMany();
     await prisma.user.deleteMany();
+
+    const files = await fs.promises.readdir(MULTER_DESTINATION_FOLDER);
+
+    for await (const file of files) {
+      await fs.promises.unlink(path.join(MULTER_DESTINATION_FOLDER, file));
+    }
 
     const testUserTokens = await createTestUser(email, password);
 
