@@ -98,7 +98,7 @@ describe("auth controller", () => {
   test("logout should return 400 error for user with invalid session", async () => {
     const expectedBody = {
       success: false,
-      message: "Token not verified",
+      message: "User with this session is not exists or expired",
     };
 
     await request(app)
