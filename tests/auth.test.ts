@@ -89,7 +89,10 @@ describe("auth controller", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ refreshToken })
       .expect((res) => {
-        expect(res.body).toStrictEqual(expectedBody);
+        expect(res.body).toStrictEqual({
+          success: false,
+          message: "User with this session is not exists or expired",
+        });
       });
 
     await request(app)
