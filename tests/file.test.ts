@@ -102,6 +102,104 @@ describe("file controller", () => {
       });
   });
 
+  test("should return info about the file", async () => {
+    const user = await prisma.user.findFirst({
+      where: { id: email },
+    });
+
+    if (!user) {
+      fail("User was not found");
+    }
+
+    const file = await prisma.file.findFirst({
+      where: { userId: user.userId },
+    });
+
+    if (!file) {
+      fail("File was not found");
+    }
+
+    const res = await request(app)
+      .get(`/file/${file.id}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(200);
+
+    expect(res.body.message.file).toBeTruthy();
+  });
+
+  test("update should return 204 and successfully uploaded file", async () => {
+    const user = await prisma.user.findFirst({
+      where: { id: email },
+    });
+
+    if (!user) {
+      fail("User was not found");
+    }
+
+    const file = await prisma.file.findFirst({
+      where: { userId: user.userId },
+    });
+
+    if (!file) {
+      fail("File was not found");
+    }
+
+    const fileName = "generated_text.txt";
+    const fileData = fs.readFileSync(path.join(__dirname, "files", fileName));
+
+    const formData = new FormData();
+    formData.append("file", fileData, fileName);
+
+    await request(app)
+      .put(`/file/update/${file.id}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .set(
+        "Content-Type",
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .send(formData.getBuffer())
+      .expect(204);
+
+    const updatedFile = await prisma.file.findFirst({
+      where: { userId: user.userId },
+    });
+
+    if (!updatedFile) {
+      fail("Updated file was not found");
+    }
+
+    expect(updatedFile.ext).toBe("txt");
+  });
+
+  test("delete should delete the file and return 204", async () => {
+    const user = await prisma.user.findFirst({
+      where: { id: email },
+    });
+
+    if (!user) {
+      fail("User was not found");
+    }
+
+    const file = await prisma.file.findFirst({
+      where: { userId: user.userId },
+    });
+
+    if (!file) {
+      fail("File was not found");
+    }
+
+    await request(app)
+      .delete(`/file/delete/${file.id}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(204);
+
+    const updatedFile = await prisma.file.findFirst({
+      where: { userId: user.userId },
+    });
+
+    expect(updatedFile).toBeNull();
+  });
+
   afterAll(() => {
     server.close();
   });
