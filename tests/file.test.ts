@@ -70,6 +70,38 @@ describe("file controller", () => {
     expect(count).toBe(1);
   });
 
+  test("download should return downloaded file", async () => {
+    const user = await prisma.user.findFirst({
+      where: { id: email },
+    });
+
+    if (!user) {
+      fail("User was not found");
+    }
+
+    const file = await prisma.file.findFirst({
+      where: { userId: user.userId },
+    });
+
+    if (!file) {
+      fail("File was not found");
+    }
+
+    await request(app)
+      .get(`/file/download/${file.id}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect((res) => {
+        const fileName = "lorem ipsum";
+
+        const fileData = fs.readFileSync(
+          path.join(__dirname, "files", fileName),
+        );
+
+        expect(Buffer.from(res.body).length).toBe(fileData.length);
+        expect(res.status).toBe(200);
+      });
+  });
+
   afterAll(() => {
     server.close();
   });
