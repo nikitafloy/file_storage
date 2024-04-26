@@ -86,5 +86,5 @@ export async function remove(id: number, userId: number) {
   }
 
   await fs.promises.unlink(filePath);
-  await prisma.file.delete({ where: { id } });
+  await FileRepository.delete(id);
 }
