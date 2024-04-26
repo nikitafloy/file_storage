@@ -176,6 +176,37 @@ describe("auth controller", () => {
       });
   });
 
+  test("should return 200 if user with two sessions tries to get access to /user/info from each session", async () => {
+    const [firstSession, secondSession] = await Promise.all([
+      request(app)
+        .post("/auth/signin")
+        .send({ id: email, password, deviceId: v4() })
+        .expect(200),
+      request(app)
+        .post("/auth/signin")
+        .send({ id: email, password, deviceId: v4() })
+        .expect(200),
+    ]);
+
+    const firstSessionAccessToken = firstSession.body.message.accessToken;
+    const secondSessionAccessToken = secondSession.body.message.accessToken;
+
+    await Promise.all([
+      request(app)
+        .get("/user/info")
+        .set("Authorization", `Bearer ${firstSessionAccessToken}`)
+        .expect((res) => {
+          expect(res.status).toBe(200);
+        }),
+      request(app)
+        .get("/user/info")
+        .set("Authorization", `Bearer ${secondSessionAccessToken}`)
+        .expect((res) => {
+          expect(res.status).toBe(200);
+        }),
+    ]);
+  });
+
   afterAll(() => {
     server.close();
   });
