@@ -207,6 +207,42 @@ describe("auth controller", () => {
     ]);
   });
 
+  test("should return 400, 200 for the user who made /logout of the first session", async () => {
+    const [firstSession, secondSession] = await Promise.all([
+      request(app)
+        .post("/auth/signin")
+        .send({ id: email, password, deviceId: v4() })
+        .expect(200),
+      request(app)
+        .post("/auth/signin")
+        .send({ id: email, password, deviceId: v4() })
+        .expect(200),
+    ]);
+
+    const firstSessionAccessToken = firstSession.body.message.accessToken;
+    const secondSessionAccessToken = secondSession.body.message.accessToken;
+
+    await request(app)
+      .get("/auth/logout")
+      .set("Authorization", `Bearer ${firstSessionAccessToken}`)
+      .expect(204);
+
+    await Promise.all([
+      request(app)
+        .get("/user/info")
+        .set("Authorization", `Bearer ${firstSessionAccessToken}`)
+        .expect((res) => {
+          expect(res.status).toBe(400);
+        }),
+      request(app)
+        .get("/user/info")
+        .set("Authorization", `Bearer ${secondSessionAccessToken}`)
+        .expect((res) => {
+          expect(res.status).toBe(200);
+        }),
+    ]);
+  });
+
   afterAll(() => {
     server.close();
   });
