@@ -4,7 +4,10 @@ import { createTestUser } from "./helpers";
 import FormData from "form-data";
 import fs from "node:fs";
 import path from "node:path";
-import { MULTER_DESTINATION_FOLDER } from "../constants";
+import {
+  MULTER_DESTINATION_FOLDER,
+  MULTER_MAX_FILE_NAME_LENGTH,
+} from "../constants";
 import { User, File } from "@prisma/client";
 
 describe("file controller", () => {
@@ -40,8 +43,9 @@ describe("file controller", () => {
     expect(list.body.message.files.length).toBe(0);
   });
 
-  test("/upload should return success uploaded file", async () => {
-    const fileName = "lorem ipsum";
+  test("should return a file with a name shorter than the original one after /upload", async () => {
+    const fileName =
+      "this_file_should_have_very_big_name_very_very_trust_me_it_is_very_big_name_of_the_file_may_be_bigger_that_any_files_in_this_repository.txt";
     const fileData = fs.readFileSync(path.join(__dirname, "files", fileName));
 
     const formData = new FormData();
@@ -65,11 +69,15 @@ describe("file controller", () => {
       fail("User was not found");
     }
 
-    const count = await prisma.file.count({
+    const file = await prisma.file.findFirst({
       where: { userId: user.userId },
     });
 
-    expect(count).toBe(1);
+    if (!file) {
+      fail("File was not found");
+    }
+
+    expect(file.name).toContain(fileName.slice(0, MULTER_MAX_FILE_NAME_LENGTH));
   });
 
   test("/download/:id should return downloaded file", async () => {
