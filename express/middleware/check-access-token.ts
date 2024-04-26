@@ -1,8 +1,8 @@
 import { RequestHandler } from "express";
 import { UserRequest } from "../../common";
 import jwt from "jsonwebtoken";
-import prisma from "../../prisma";
 import { isVerifyErrors } from "./helpers";
+import { UserSessionsRepository } from "../../prisma/repositories";
 
 export const checkAccessToken: RequestHandler = async (
   req: UserRequest,
@@ -26,15 +26,10 @@ export const checkAccessToken: RequestHandler = async (
         throw new Error("User iat is not provided");
       }
 
-      const session = await prisma.userSessions.findFirst({
-        where: {
-          id: user.session,
-          OR: [
-            { lastLogoutAt: null },
-            { lastLogoutAt: { lte: new Date(user.iat * 1000) } },
-          ],
-        },
-      });
+      const session = await UserSessionsRepository.getActive(
+        user.session,
+        user.iat,
+      );
 
       if (!session) {
         throw new Error("User with this session is not exists or expired");
