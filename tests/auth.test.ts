@@ -82,6 +82,26 @@ describe("auth controller", () => {
     expect(result.body.accessToken).toBeTruthy();
   });
 
+  test("/new_token should return 400 for expired refresh token", async () => {
+    const session = await prisma.userSessions.findFirst({
+      where: { userId },
+    });
+
+    const expiredRefreshToken = jwt.sign(
+      { userId, session: session?.id },
+      process.env.JWT_SECRET_REFRESH as string,
+      { expiresIn: -30 },
+    );
+
+    const res = await request(app)
+      .post("/auth/signin/new_token")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ refreshToken: expiredRefreshToken })
+      .expect(400);
+
+    expect(res.body.message).toBe("Invalid token");
+  });
+
   test("/logout should return 204 and user session should have lastLogoutAt", async () => {
     await request(app)
       .get("/auth/logout")
