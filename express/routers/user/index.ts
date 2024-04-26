@@ -1,6 +1,6 @@
 import express from "express";
-import { getInfo } from "./controller";
 import { checkAccessToken } from "../../middleware";
+import { getInfo } from "./controller";
 
 const router = express.Router();
 

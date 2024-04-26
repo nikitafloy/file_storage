@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
-import { FileRepository } from "../../../prisma/repositories";
 import * as component from "./component";
+import { FileRepository } from "../../../prisma/repositories";
 import {
   UserRequest,
   GetFilesListDto,

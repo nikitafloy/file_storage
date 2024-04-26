@@ -1,11 +1,10 @@
 import multer from "multer";
-
+import path from "node:path";
 import {
   MULTER_DESTINATION_FOLDER,
   MULTER_MAX_FILE_NAME_LENGTH,
   MULTER_MAX_FILE_SIZE,
 } from "../../constants";
-import path from "node:path";
 
 export const multerUpload = multer({
   storage: multer.diskStorage({

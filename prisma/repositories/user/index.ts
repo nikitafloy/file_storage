@@ -1,5 +1,3 @@
-import prisma from "../../index";
-
 export class UserRepository {
   static async create(id: string, password: string) {
     await prisma.user.create({

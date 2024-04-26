@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
+import { File } from "@prisma/client";
 import { multerUpload } from "../../multer";
 import { MULTER_DESTINATION_FOLDER } from "../../../constants";
-import { File } from "@prisma/client";
 
 const singleMulterUpload = multerUpload.single("file");
 

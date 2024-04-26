@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import path from "node:path";
 import fs from "node:fs";
 import { FileRepository } from "../../../prisma/repositories";
-import { isFileExists } from "../../../utils";
 import { getFilePath, uploadFile } from "./helpers";
+import { isFileExists } from "../../../utils";
 
 export async function get(id: number, userId: number) {
   const file = await FileRepository.getFile(id, userId);

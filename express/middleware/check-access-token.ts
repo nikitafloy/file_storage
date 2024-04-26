@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
+import { UserSessionsRepository } from "../../prisma/repositories";
 import { UserRequest, verifyAccessToken } from "../../common";
 import { isVerifyErrors } from "./helpers";
-import { UserSessionsRepository } from "../../prisma/repositories";
 
 export const checkAccessToken: RequestHandler = async (
   req: UserRequest,

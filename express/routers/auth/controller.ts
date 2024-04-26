@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { UpdateTokenDto, UserRequest } from "../../../common";
 import * as component from "./component";
+import { UpdateTokenDto, UserRequest } from "../../../common";
 
 export async function signIn(req: Request, res: Response, next: NextFunction) {
   try {

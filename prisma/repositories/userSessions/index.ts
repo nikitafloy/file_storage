@@ -1,5 +1,3 @@
-import prisma from "../../index";
-
 export class UserSessionsRepository {
   static async create(userId: number, deviceId: string) {
     try {
