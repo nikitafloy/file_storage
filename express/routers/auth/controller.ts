@@ -58,7 +58,7 @@ export async function logout(
 
     await component.logout(session);
 
-    return res.status(204).send();
+    res.status(204).send();
   } catch (err) {
     next(err);
   }
