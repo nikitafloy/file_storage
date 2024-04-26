@@ -2,8 +2,10 @@ import multer from "multer";
 
 import {
   MULTER_DESTINATION_FOLDER,
+  MULTER_MAX_FILE_NAME_LENGTH,
   MULTER_MAX_FILE_SIZE,
 } from "../../constants";
+import path from "node:path";
 
 export const multerUpload = multer({
   storage: multer.diskStorage({
@@ -13,9 +15,13 @@ export const multerUpload = multer({
     filename: function (_, file, cb) {
       cb(
         null,
-        `${Buffer.from(`${Date.now()}-${file.originalname}`, "latin1").toString(
-          "utf8",
-        )}`,
+        `${Buffer.from(
+          `${Date.now()}-${file.originalname.slice(
+            0,
+            MULTER_MAX_FILE_NAME_LENGTH,
+          )}.${path.extname(file.originalname).split(".")[1]}`,
+          "latin1",
+        ).toString("utf8")}`,
       );
     },
   }),

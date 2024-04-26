@@ -4,7 +4,6 @@ import fs from "node:fs";
 import { FileRepository } from "../../../prisma/repositories";
 import { isFileExists } from "../../../utils";
 import { getFilePath, uploadFile } from "./helpers";
-import { MULTER_MAX_FILE_NAME_LENGTH } from "../../../constants";
 
 export async function get(id: number, userId: number) {
   const file = await FileRepository.getFile(id, userId);
@@ -53,7 +52,7 @@ export async function update(
 
   await FileRepository.update(
     id,
-    newFile.filename.slice(0, MULTER_MAX_FILE_NAME_LENGTH),
+    newFile.filename,
     ext,
     newFile.mimetype,
     newFile.size,
