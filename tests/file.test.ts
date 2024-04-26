@@ -36,12 +36,12 @@ describe("file controller", () => {
   });
 
   test("/list should return right files length for new user", async () => {
-    const list = await request(app)
+    const res = await request(app)
       .get("/file/list")
       .set("Authorization", `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(list.body.message.files.length).toBe(0);
+    expect(res.body.message.files.length).toBe(0);
   });
 
   test("should return a file with a name shorter than the original one after /upload", async () => {

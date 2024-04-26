@@ -38,16 +38,16 @@ describe("auth controller", () => {
   });
 
   test("/signin should return 204 and accessToken, refreshToken should be exists", async () => {
-    const result = await request(app)
+    const res = await request(app)
       .post("/auth/signin")
       .send({ id: email, password, deviceId: v4() })
       .expect(200);
 
-    accessToken = result.body.message.accessToken;
-    refreshToken = result.body.message.refreshToken;
+    accessToken = res.body.message.accessToken;
+    refreshToken = res.body.message.refreshToken;
 
-    expect(result.body.message.accessToken).toBeTruthy();
-    expect(result.body.message.refreshToken).toBeTruthy();
+    expect(res.body.message.accessToken).toBeTruthy();
+    expect(res.body.message.refreshToken).toBeTruthy();
   });
 
   test("/logout should return 400 for invalid access token", async () => {
@@ -74,13 +74,13 @@ describe("auth controller", () => {
   });
 
   test("/new_token should return 200 and new accessToken", async () => {
-    const result = await request(app)
+    const res = await request(app)
       .post("/auth/signin/new_token")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ refreshToken })
       .expect(200);
 
-    expect(result.body.accessToken).toBeTruthy();
+    expect(res.body.accessToken).toBeTruthy();
   });
 
   test("/new_token should return 400 for expired refresh token", async () => {
@@ -177,7 +177,7 @@ describe("auth controller", () => {
   });
 
   test("should return 200 if user with two sessions tries to get access to /user/info from each session", async () => {
-    const [firstSession, secondSession] = await Promise.all([
+    const [resFirstSession, resSecondSession] = await Promise.all([
       request(app)
         .post("/auth/signin")
         .send({ id: email, password, deviceId: v4() })
@@ -188,8 +188,8 @@ describe("auth controller", () => {
         .expect(200),
     ]);
 
-    const firstSessionAccessToken = firstSession.body.message.accessToken;
-    const secondSessionAccessToken = secondSession.body.message.accessToken;
+    const firstSessionAccessToken = resFirstSession.body.message.accessToken;
+    const secondSessionAccessToken = resSecondSession.body.message.accessToken;
 
     await Promise.all([
       request(app)
@@ -208,7 +208,7 @@ describe("auth controller", () => {
   });
 
   test("should return 400, 200 for the user who made /logout of the first session", async () => {
-    const [firstSession, secondSession] = await Promise.all([
+    const [resFirstSession, resSecondSession] = await Promise.all([
       request(app)
         .post("/auth/signin")
         .send({ id: email, password, deviceId: v4() })
@@ -219,8 +219,8 @@ describe("auth controller", () => {
         .expect(200),
     ]);
 
-    const firstSessionAccessToken = firstSession.body.message.accessToken;
-    const secondSessionAccessToken = secondSession.body.message.accessToken;
+    const firstSessionAccessToken = resFirstSession.body.message.accessToken;
+    const secondSessionAccessToken = resSecondSession.body.message.accessToken;
 
     await request(app)
       .get("/auth/logout")
