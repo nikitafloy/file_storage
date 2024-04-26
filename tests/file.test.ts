@@ -5,7 +5,7 @@ import FormData from "form-data";
 import fs from "node:fs";
 import path from "node:path";
 import { MULTER_DESTINATION_FOLDER } from "../constants";
-import {User} from "@prisma/client";
+import { User, File } from "@prisma/client";
 
 describe("file controller", () => {
   const email = "nikita@mail.ru";
@@ -13,6 +13,7 @@ describe("file controller", () => {
 
   let accessToken: string;
   let user: User | null;
+  let file: File | null;
 
   beforeAll(async () => {
     await prisma.file.deleteMany();
@@ -41,7 +42,6 @@ describe("file controller", () => {
 
   test("upload should return success uploaded file", async () => {
     const fileName = "lorem ipsum";
-
     const fileData = fs.readFileSync(path.join(__dirname, "files", fileName));
 
     const formData = new FormData();
@@ -77,7 +77,7 @@ describe("file controller", () => {
       fail("User was not found");
     }
 
-    const file = await prisma.file.findFirst({
+    file = await prisma.file.findFirst({
       where: { userId: user.userId },
     });
 
@@ -105,10 +105,6 @@ describe("file controller", () => {
       fail("User was not found");
     }
 
-    const file = await prisma.file.findFirst({
-      where: { userId: user.userId },
-    });
-
     if (!file) {
       fail("File was not found");
     }
@@ -125,10 +121,6 @@ describe("file controller", () => {
     if (!user) {
       fail("User was not found");
     }
-
-    const file = await prisma.file.findFirst({
-      where: { userId: user.userId },
-    });
 
     if (!file) {
       fail("File was not found");
@@ -165,10 +157,6 @@ describe("file controller", () => {
     if (!user) {
       fail("User was not found");
     }
-
-    const file = await prisma.file.findFirst({
-      where: { userId: user.userId },
-    });
 
     if (!file) {
       fail("File was not found");
