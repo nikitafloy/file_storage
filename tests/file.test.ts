@@ -1,4 +1,5 @@
 import request from "supertest";
+import "../prisma";
 import { app, server } from "../express";
 import { createTestUser } from "./helpers";
 import FormData from "form-data";
