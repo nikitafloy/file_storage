@@ -1,7 +1,7 @@
 import { ValidationError } from "class-validator";
 import { VerifyErrors } from "jsonwebtoken";
 
-export function getAllConstraints(errors: ValidationError[]): string[] {
+export function getAllConstraints(errors: ValidationError[]) {
   const constraints: string[] = [];
 
   for (const error of errors) {
