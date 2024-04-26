@@ -52,4 +52,8 @@ export class FileRepository {
 
     return list;
   }
+
+  static async delete(id: number) {
+    await prisma.file.delete({ where: { id } });
+  }
 }
