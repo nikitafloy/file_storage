@@ -53,7 +53,7 @@ export async function update(
 
   await FileRepository.update(
     id,
-    `${newFile.filename.slice(0, MULTER_MAX_FILE_NAME_LENGTH)}.${ext}`,
+    newFile.filename.slice(0, MULTER_MAX_FILE_NAME_LENGTH),
     ext,
     newFile.mimetype,
     newFile.size,

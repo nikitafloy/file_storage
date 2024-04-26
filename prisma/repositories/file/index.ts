@@ -24,7 +24,7 @@ export class FileRepository {
     mime_type: string,
     size: number,
   ) {
-    prisma.file.update({
+    await prisma.file.update({
       where: { id },
       data: {
         name,

@@ -19,6 +19,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(400).json({ success: false, message: err.message });
 });
 
-app.listen(process.env.SERVER_PORT, () => {
+const serverPort =
+  process.env.NODE_ENV !== "test" ? process.env.SERVER_PORT : 0;
+
+const server = app.listen(serverPort, () => {
   console.log("Express server started successfully.");
 });
+
+export { app, server };
