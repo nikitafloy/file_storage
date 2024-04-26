@@ -243,6 +243,27 @@ describe("auth controller", () => {
     ]);
   });
 
+  test("should return 400 for the user who made /logout and trying to /signin/new_token", async () => {
+    const res = await request(app)
+      .post("/auth/signin")
+      .send({ id: email, password, deviceId: v4() })
+      .expect(200);
+
+    const accessToken = res.body.message.accessToken;
+    const refreshToken = res.body.message.accessToken;
+
+    await request(app)
+      .get("/auth/logout")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(204);
+
+    await request(app)
+      .post("/auth/signin/new_token")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ refreshToken })
+      .expect(400);
+  });
+
   afterAll(() => {
     server.close();
   });
