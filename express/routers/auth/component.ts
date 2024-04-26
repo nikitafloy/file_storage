@@ -1,9 +1,14 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import {
   UserRepository,
   UserSessionsRepository,
 } from "../../../prisma/repositories";
+import {
+  createAccessToken,
+  createRefreshToken,
+  decodeToken,
+  verifyRefreshToken,
+} from "../../../common";
 
 export async function signIn(id: string, password: string, deviceId: string) {
   const user = await UserRepository.getById(id);
@@ -24,34 +29,20 @@ export async function signIn(id: string, password: string, deviceId: string) {
 
   const tokenPayload = { userId, session: session.id };
 
-  const accessToken = jwt.sign(
-    tokenPayload,
-    process.env.JWT_SECRET_ACCESS as string,
-    { expiresIn: "10m" },
-  );
-
-  const refreshToken = jwt.sign(
-    tokenPayload,
-    process.env.JWT_SECRET_REFRESH as string,
-  );
+  const accessToken = createAccessToken(tokenPayload);
+  const refreshToken = createRefreshToken(tokenPayload);
 
   return { accessToken, refreshToken };
 }
 
 export async function updateToken(refreshToken: string) {
   try {
-    jwt.verify(
-      refreshToken,
-      process.env.JWT_SECRET_REFRESH as string,
-    ) as jwt.JwtPayload;
+    verifyRefreshToken(refreshToken);
   } catch (err) {
     throw new Error("Invalid token");
   }
 
-  const { exp, iat, ...tokenPayload } = jwt.decode(
-    refreshToken,
-  ) as jwt.JwtPayload;
-
+  const { exp, iat, ...tokenPayload } = decodeToken(refreshToken);
   if (!iat) {
     throw new Error("User iat is not provided");
   }
@@ -65,11 +56,7 @@ export async function updateToken(refreshToken: string) {
     throw new Error("User with this session is not exists or expired");
   }
 
-  const accessToken = jwt.sign(
-    tokenPayload,
-    process.env.JWT_SECRET_ACCESS as string,
-    { expiresIn: "10m" },
-  );
+  const accessToken = createAccessToken(tokenPayload);
 
   return accessToken;
 }
