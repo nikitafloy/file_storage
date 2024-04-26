@@ -3,7 +3,7 @@ import { app, server } from "../express";
 import { createTestUser } from "./helpers";
 
 describe("user controller", () => {
-  const email = "nikita@mail.ru";
+  const email = "nikita_user@mail.ru";
   const password = "password";
 
   let accessToken: string;

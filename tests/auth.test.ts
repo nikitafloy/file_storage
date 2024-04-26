@@ -1,10 +1,10 @@
 import request from "supertest";
 import { app, server } from "../express";
-import { uuid } from "uuidv4";
+import { v4 } from "uuid";
 import jwt from "jsonwebtoken";
 
 describe("auth controller", () => {
-  const email = "nikita@mail.ru";
+  const email = "nikita_auth@mail.ru";
   const password = "password";
 
   let accessToken: string;
@@ -39,7 +39,7 @@ describe("auth controller", () => {
   test("signin should return 204 and accessToken, refreshToken should be exists", async () => {
     const result = await request(app)
       .post("/auth/signin")
-      .send({ id: email, password, deviceId: uuid() })
+      .send({ id: email, password, deviceId: v4() })
       .expect(200);
 
     accessToken = result.body.message.accessToken;

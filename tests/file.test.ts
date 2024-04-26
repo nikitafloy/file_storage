@@ -8,7 +8,7 @@ import { MULTER_DESTINATION_FOLDER } from "../constants";
 import { User, File } from "@prisma/client";
 
 describe("file controller", () => {
-  const email = "nikita@mail.ru";
+  const email = "nikita_file@mail.ru";
   const password = "password";
 
   let accessToken: string;
