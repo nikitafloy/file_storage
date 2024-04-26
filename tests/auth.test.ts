@@ -17,7 +17,7 @@ describe("auth controller", () => {
     await prisma.user.deleteMany();
   });
 
-  test("signup should return 204 and user should be exist", async () => {
+  test("/signup should return 204 and user should be exist", async () => {
     await request(app)
       .post("/auth/signup")
       .send({ id: email, password })
@@ -36,7 +36,7 @@ describe("auth controller", () => {
     expect(user.id).toBe(email);
   });
 
-  test("signin should return 204 and accessToken, refreshToken should be exists", async () => {
+  test("/signin should return 204 and accessToken, refreshToken should be exists", async () => {
     const result = await request(app)
       .post("/auth/signin")
       .send({ id: email, password, deviceId: v4() })
@@ -49,7 +49,7 @@ describe("auth controller", () => {
     expect(result.body.message.refreshToken).toBeTruthy();
   });
 
-  test("logout should return 400 for invalid access token", async () => {
+  test("/logout should return 400 for invalid access token", async () => {
     const session = await prisma.userSessions.findFirst({
       where: { userId },
     });
@@ -72,7 +72,7 @@ describe("auth controller", () => {
       });
   });
 
-  test("new_token should return 200 and new accessToken", async () => {
+  test("/new_token should return 200 and new accessToken", async () => {
     const result = await request(app)
       .post("/auth/signin/new_token")
       .set("Authorization", `Bearer ${accessToken}`)
@@ -82,7 +82,7 @@ describe("auth controller", () => {
     expect(result.body.accessToken).toBeTruthy();
   });
 
-  test("logout should return 204 and user session should have lastLogoutAt", async () => {
+  test("/logout should return 204 and user session should have lastLogoutAt", async () => {
     await request(app)
       .get("/auth/logout")
       .set("Authorization", `Bearer ${accessToken}`)
@@ -95,7 +95,7 @@ describe("auth controller", () => {
     expect(session?.lastLogoutAt).toBeTruthy();
   });
 
-  test("logout should return 400 error for user with invalid session", async () => {
+  test("/logout should return 400 error for user with invalid session", async () => {
     const expectedBody = {
       success: false,
       message: "User with this session is not exists or expired",

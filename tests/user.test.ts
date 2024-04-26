@@ -17,7 +17,7 @@ describe("user controller", () => {
     accessToken = testUserTokens.accessToken;
   });
 
-  test("info should return userId", async () => {
+  test("/info should return userId", async () => {
     const res = await request(app)
       .get("/user/info")
       .set("Authorization", `Bearer ${accessToken}`)

@@ -31,7 +31,7 @@ describe("file controller", () => {
     accessToken = testUserTokens.accessToken;
   });
 
-  test("list should return right files length for new user", async () => {
+  test("/list should return right files length for new user", async () => {
     const list = await request(app)
       .get("/file/list")
       .set("Authorization", `Bearer ${accessToken}`)
@@ -40,7 +40,7 @@ describe("file controller", () => {
     expect(list.body.message.files.length).toBe(0);
   });
 
-  test("upload should return success uploaded file", async () => {
+  test("/upload should return success uploaded file", async () => {
     const fileName = "lorem ipsum";
     const fileData = fs.readFileSync(path.join(__dirname, "files", fileName));
 
@@ -72,7 +72,7 @@ describe("file controller", () => {
     expect(count).toBe(1);
   });
 
-  test("download should return downloaded file", async () => {
+  test("/download/:id should return downloaded file", async () => {
     if (!user) {
       fail("User was not found");
     }
@@ -100,7 +100,7 @@ describe("file controller", () => {
       });
   });
 
-  test("should return info about the file", async () => {
+  test("/:id should return info about the file", async () => {
     if (!user) {
       fail("User was not found");
     }
@@ -117,7 +117,7 @@ describe("file controller", () => {
     expect(res.body.message.file).toBeTruthy();
   });
 
-  test("update should return 204 and successfully uploaded file", async () => {
+  test("/update/:id should return 204 and successfully uploaded file", async () => {
     if (!user) {
       fail("User was not found");
     }
@@ -153,7 +153,7 @@ describe("file controller", () => {
     expect(updatedFile.ext).toBe("txt");
   });
 
-  test("delete should delete the file and return 204", async () => {
+  test("/delete/:id should delete the file and return 204", async () => {
     if (!user) {
       fail("User was not found");
     }
