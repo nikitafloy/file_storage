@@ -1,6 +1,5 @@
 import { RequestHandler } from "express";
-import { UserRequest } from "../../common";
-import jwt from "jsonwebtoken";
+import { UserRequest, verifyAccessToken } from "../../common";
 import { isVerifyErrors } from "./helpers";
 import { UserSessionsRepository } from "../../prisma/repositories";
 
@@ -17,11 +16,7 @@ export const checkAccessToken: RequestHandler = async (
     }
 
     try {
-      const user = jwt.verify(
-        token,
-        process.env.JWT_SECRET_ACCESS as string,
-      ) as jwt.JwtPayload;
-
+      const user = verifyAccessToken(token);
       if (!user.iat) {
         throw new Error("User iat is not provided");
       }

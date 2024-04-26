@@ -10,6 +10,13 @@ export function createRefreshToken(payload: JwtPayload) {
   return jwt.sign(payload, process.env.JWT_SECRET_REFRESH as string);
 }
 
+export function verifyAccessToken(token: string) {
+  return jwt.verify(
+    token,
+    process.env.JWT_SECRET_ACCESS as string,
+  ) as jwt.JwtPayload;
+}
+
 export function verifyRefreshToken(token: string) {
   return jwt.verify(
     token,
