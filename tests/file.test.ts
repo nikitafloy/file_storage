@@ -10,6 +10,7 @@ import {
   MULTER_MAX_FILE_NAME_LENGTH,
 } from "../constants";
 import { User, File } from "@prisma/client";
+import { getFilePath } from "../express/routers/file/helpers";
 
 describe("file controller", () => {
   const email = "nikita_file@mail.ru";
@@ -181,6 +182,46 @@ describe("file controller", () => {
     });
 
     expect(updatedFile).toBeNull();
+  });
+
+  test("/update/:id should return 400 if user tried to download a non-existent file on the disk", async () => {
+    if (!user) {
+      fail("User was not found");
+    }
+
+    const fileName = "generated_text.txt";
+    const fileData = fs.readFileSync(path.join(__dirname, "files", fileName));
+
+    const formData = new FormData();
+    formData.append("file", fileData, fileName);
+
+    await request(app)
+      .post(`/file/upload`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .set(
+        "Content-Type",
+        `multipart/form-data; boundary=${formData.getBoundary()}`,
+      )
+      .send(formData.getBuffer())
+      .expect(204);
+
+    file = await prisma.file.findFirst({
+      where: { userId: user.userId },
+    });
+
+    if (!file) {
+      fail("File was not found");
+    }
+
+    const filePath = getFilePath(file);
+    await fs.promises.unlink(filePath);
+
+    await request(app)
+      .get(`/file/download/${file.id}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect((res) => {
+        expect(res.status).toBe(400);
+      });
   });
 
   afterAll(() => {
