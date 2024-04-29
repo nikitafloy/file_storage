@@ -15,10 +15,11 @@ export const multerUpload = multer({
       cb(
         null,
         `${Buffer.from(
-          `${Date.now()}-${file.originalname.slice(
-            0,
-            MULTER_MAX_FILE_NAME_LENGTH,
-          )}.${path.extname(file.originalname).split(".")[1]}`,
+          `${Date.now()}-${path
+            .parse(file.originalname)
+            .name.slice(0, MULTER_MAX_FILE_NAME_LENGTH)}.${
+            path.extname(file.originalname).split(".")[1]
+          }`,
           "latin1",
         ).toString("utf8")}`,
       );
