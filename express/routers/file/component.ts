@@ -11,11 +11,6 @@ export async function get(id: number, userId: number) {
     throw new Error("File was not found");
   }
 
-  const filePath = getFilePath(file);
-  if (!(await isFileExists(filePath))) {
-    throw new Error("File is not exists");
-  }
-
   return { ...file, size: file.size.toString() };
 }
 
